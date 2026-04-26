@@ -461,8 +461,8 @@
         { text: "Для стрельбы из оружия нужно вызывать Instantiate...", options: ["В методе Shoot", "Только в Start", "В FixedUpdate"], correct: "В методе Shoot" }
     ];
 
-    let quizAttempts = JSON.parse(localStorage.getItem("unityQuizAttempts")) || new Array(31).fill(0);
-    let quizLocked = JSON.parse(localStorage.getItem("unityQuizLocked")) || new Array(31).fill(false);
+    let quizAttempts = JSON.parse(localStorage.getItem("unityQuizAttempts")) || new Array(30).fill(0);
+    let quizLocked = JSON.parse(localStorage.getItem("unityQuizLocked")) || new Array(30).fill(false);
 
     function saveQuizState() {
         localStorage.setItem("unityQuizAttempts", JSON.stringify(quizAttempts));
