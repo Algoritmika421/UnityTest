@@ -660,16 +660,17 @@
     }
     ];
 
-    function renderTasks() {
-        const container = document.getElementById('tasks-container');
-        container.innerHTML = tasks.map(task => `
-            <div class="task-card">
-                <div class="task-title">${task.title}</div>
-                <p>${task.desc}</p>
-                <div class="task-game-example">🎮 Пример из игр: ${task.desc.split('Пример из игр:')[1] || task.desc.split('Аналогия:')[1] || 'Попробуй реализовать свою версию!'}</div>
-            </div>
-        `).join('');
-    }
+ function renderTasks() {
+    const container = document.getElementById('tasks-container');
+    if (!container) return;
+    container.innerHTML = tasks.map(task => `
+        <div class="task-card">
+            <div class="task-title">${task.title}</div>
+            <p>${task.desc}</p>
+            <div class="task-game-example">${task.gameExample}</div>
+        </div>
+    `).join('');
+}
 
     // Табы
     const tabs = document.querySelectorAll('.tab-btn');
