@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Unity Junior: Оружие и физика | Полный курс с тестами и заданиями</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #d4eaff 0%, #b0d4f0 100%);
+            color: #0a2f44;
+            padding: 24px 20px;
+        }
+
+        .app {
+            max-width: 1500px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(2px);
+            border-radius: 48px;
+            box-shadow: 0 20px 40px rgba(0, 30, 50, 0.2);
+            overflow: hidden;
+            padding: 20px 24px 32px 24px;
+        }
+
+        .hero {
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(120deg, #004e7c, #0077be);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 12px rgba(0,160,210,0.3);
+        }
+        .hero p {
+            color: #135b7a;
+            font-weight: 500;
+            background: #eef7ffcc;
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 60px;
+            margin-top: 8px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            border-bottom: 2px solid #cae3f0;
+            padding-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: #e1f0fa;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            color: #135b7a;
+            transition: 0.2s;
+        }
+        .tab-btn.active {
+            background: #1f7ea3;
+            color: white;
+            box-shadow: 0 8px 18px rgba(0,100,130,0.3);
+        }
+        .tab-btn:hover:not(.active) {
+            background: #cbe6f5;
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fade 0.25s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(6px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        /* Методичка */
+        .methodology-layout {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .topic-sidebar {
+            flex: 1.2;
+            min-width: 220px;
+            background: #e1f2fecc;
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 20px 12px;
+            height: fit-content;
+        }
+        .topic-sidebar h3 {
+            margin-bottom: 16px;
+            padding-left: 12px;
+            color: #005a8c;
+        }
+        .topic-list {
+            list-style: none;
+        }
+        .topic-list li {
+            margin: 10px 0;
+            padding: 10px 14px;
+            background: #f0f9ff;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            border: 1px solid #bdddef;
+            transition: 0.1s;
+        }
+        .topic-list li:hover {
+            background: #c3e3f7;
+            transform: translateX(6px);
+        }
+        .topic-list li.active-topic {
+            background: #2c8eb3;
+            color: white;
+            border-color: #2c8eb3;
+        }
+        .methodology-content {
+            flex: 3;
+            background: #f5fdffdd;
+            backdrop-filter: blur(4px);
+            border-radius: 32px;
+            padding: 24px 28px;
+            border: 1px solid #cae9ff;
+        }
+        .methodology-content h2 {
+            color: #006994;
+            border-left: 6px solid #0099cc;
+            padding-left: 14px;
+            margin-bottom: 20px;
+        }
+        .methodology-content p {
+            line-height: 1.6;
+            margin: 16px 0;
+        }
+        .code-block {
+            background: #0a2f3b;
+            color: #c3e8ff;
+            padding: 14px 20px;
+            border-radius: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        /* Вопросы — улучшенная обратная связь */
+        .quiz-wrapper {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .quiz-main {
+            flex: 3;
+        }
+        .quiz-sidebar {
+            flex: 1;
+            min-width: 220px;
+            background: #e1f2fecc;
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 20px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        .quiz-sidebar h3 {
+            color: #005a8c;
+            margin-bottom: 16px;
+            border-left: 4px solid #0099cc;
+            padding-left: 12px;
+        }
+        .quiz-sidebar p {
+            background: white;
+            padding: 10px;
+            border-radius: 20px;
+            margin: 12px 0;
+            font-weight: 500;
+        }
+        .motivation-phrase {
+            font-style: italic;
+            color: #1f6e8c;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px dashed #9ac7e0;
+        }
+        .qa-card {
+            background: #eef6fc;
+            border-radius: 28px;
+            margin-bottom: 24px;
+            padding: 18px 24px;
+            border-left: 8px solid #2c9bcb;
+            transition: 0.1s;
+        }
+        .quiz-question {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+        .quiz-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 14px 0;
+        }
+        .quiz-option {
+            background: white;
+            padding: 8px 18px;
+            border-radius: 60px;
+            border: 1px solid #9bc6dd;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .quiz-option.correct-highlight {
+            background: #2ecc71 !important;
+            color: white;
+            border-color: #27ae60;
+        }
+        .quiz-option.wrong-highlight {
+            background: #e74c3c !important;
+            color: white;
+            border-color: #c0392b;
+        }
+        .quiz-option.disabled-opt {
+            opacity: 0.7;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .quiz-feedback {
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        .attempts-badge {
+            font-size: 0.85rem;
+            background: #ffffffcc;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 40px;
+            margin-top: 8px;
+        }
+        .reset-btn {
+            background: #c0392b;
+            margin-top: 20px;
+            width: 100%;
+            border: none;
+            padding: 10px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .reset-btn:hover {
+            background: #a82314;
+        }
+
+        /* Задания */
+        .task-card {
+            background: #e3f2fa;
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 8px solid #f39c12;
+        }
+        .task-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #005073;
+        }
+        .task-game-example {
+            background: #fef5e7;
+            padding: 10px 15px;
+            border-radius: 20px;
+            margin: 12px 0;
+            font-style: italic;
+            color: #b85c00;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: #2e6c8c;
+        }
+        @media (max-width: 800px) {
+            .methodology-layout, .quiz-wrapper { flex-direction: column; }
+            .quiz-sidebar { position: static; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="hero">
+        <h1>🎮 Unity ОРУЖЕЙНЫЙ МАСТЕР</h1>
+        <p>⚡ Переменные, методы, физика, Instantiate, коллайдеры — полный курс для новичка</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="methodology">📘 Методичка</button>
+        <button class="tab-btn" data-tab="quiz">📋 Вопросы (30 шт)</button>
+        <button class="tab-btn" data-tab="tasks">⚙️ Задания (10 шт)</button>
+    </div>
+
+    <!-- Методичка -->
+    <div id="methodology" class="tab-content active">
+        <div class="methodology-layout">
+            <div class="topic-sidebar">
+                <h3>📌 Темы для изучения</h3>
+                <ul class="topic-list" id="topic-list">
+                    <li data-topic="var">📦 Переменные и типы</li>
+                    <li data-topic="special">🎯 GameObject, Transform, Vector3</li>
+                    <li data-topic="ref">🔗 Ссылки на скрипты</li>
+                    <li data-topic="methods">⚙️ Свои методы / функции</li>
+                    <li data-topic="unityApi">🔫 Instantiate, Destroy, SetActive, Translate</li>
+                    <li data-topic="physics">💥 Коллайдеры, Rigidbody, физика</li>
+                    <li data-topic="weapon">🔫 Создание простого оружия</li>
+                    <li data-topic="collision">🛑 Обработка столкновений</li>
+                    <li data-topic="lifecycle">⏱️ Жизненный цикл MonoBehaviour</li>
+                </ul>
+            </div>
+            <div class="methodology-content" id="methodology-content"></div>
+        </div>
+    </div>
+
+    <!-- ВОПРОСЫ -->
+    <div id="quiz" class="tab-content">
+        <div class="quiz-wrapper">
+            <div class="quiz-main">
+                <h2 style="margin-bottom: 20px;">✅ 30 вопросов на проверку знаний</h2>
+                <div id="quiz-container"></div>
+            </div>
+            <div class="quiz-sidebar" id="quiz-sidebar">
+                <h3>📊 Статус</h3>
+                <div id="statsPanel"></div>
+                <div class="motivation-phrase" id="motivationMsg">✨ Нажми на вариант ответа — увидишь зелёный (верно) или красный (ошибка). У тебя 2 попытки на вопрос!</div>
+                <button id="resetProgressBtn" class="reset-btn">🗑️ Сбросить весь прогресс</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЗАДАНИЯ -->
+    <div id="tasks" class="tab-content">
+        <h2>🧪 10 заданий для разработчиков оружия</h2>
+        <p style="margin-bottom: 20px;">⭐ Выполняй в Unity, используя теорию из методички.</p>
+        <div id="tasks-container"></div>
+    </div>
+    <footer>🧠 Изучи методичку → проверь себя вопросами → закрепи практикой в Unity!</footer>
+</div>
+
+<script>
+    // ======================= МЕТОДИЧКА (без изменений - хорошая) =======================
+    const topicsContent = {
+        var: `<h2>📦 Переменные и типы данных — основа любого скрипта</h2>
+            <p>Переменная — это именованная ячейка памяти, где хранятся данные. В Unity большинство переменных объявляются внутри класса, унаследованного от MonoBehaviour. По сути, переменная — это контейнер: вы кладёте туда число, текст или логическое значение и потом используете в любом месте скрипта. Без переменных невозможно хранить количество патронов, скорость пули или имя игрока.</p>
+            <p>В C# внутри Unity есть несколько основных типов: <strong>int</strong> (целые числа, например, 5, -10, 100), <strong>float</strong> (числа с плавающей точкой, например, 3.14f, 0.5f), <strong>string</strong> (текст в кавычках: "Пистолет") и <strong>bool</strong> (только true или false). Если поставить модификатор <strong>public</strong>, переменная появится в инспекторе Unity — это очень удобно для настройки оружия без переписывания кода. А <strong>private</strong> скрывает переменную, но к ней можно обратиться внутри скрипта.</p>
+            <p>Пример из игры: <code>public int ammo = 30;</code> — это патроны, которые вы видите в инспекторе. <code>private float fireRate = 0.5f;</code> — скорострельность, скрытая от редактора. Помните: имена переменных должны быть понятными (bulletSpeed, health), а не "a", "b". Это сделает ваш код читаемым и для других разработчиков.</p>
+            <div class="code-block">public int maxAmmo = 30;<br>public float bulletSpeed = 20f;<br>private string weaponName = "Пистолет";<br>bool isReloading = false;</div>`,
+        special: `<h2>🎯 GameObject, Transform и Vector3 — кирпичики сцены</h2>
+            <p>Любой объект на сцене в Unity — это <strong>GameObject</strong>. Это может быть куб, камера, источник света, префаб пули. Каждый GameObject обязательно имеет компонент <strong>Transform</strong>, который хранит его позицию (Position), поворот (Rotation) и масштаб (Scale). Без Transform объект просто не может существовать в игровом пространстве. Вы всегда можете получить доступ к Transform через переменную <code>transform</code> (строчными буквами) внутри скрипта.</p>
+            <p><strong>Vector3</strong> — это структура для работы с 3D-координатами. Она содержит три поля: x, y, z. Используйте Vector3 для указания позиции, направления движения, сил. Например, <code>new Vector3(0, 5, 0)</code> — это точка на 5 единиц выше начала координат. Встроенные сокращения: Vector3.forward (0,0,1), Vector3.up (0,1,0), Vector3.right (1,0,0). Для движения пули нам понадобится направление <code>firePoint.forward</code>.</p>
+            <p>Практический совет: если нужно найти объект на сцене по имени, используйте <code>GameObject.Find("Имя")</code>, но лучше заранее создавать публичные переменные и перетаскивать объекты в инспекторе — это быстрее и надежнее. Transform позволяет перемещать объект: <code>transform.position = new Vector3(10, 0, 0);</code> или поворачивать через <code>transform.Rotate(0, 90, 0);</code>. Без этих знаний невозможно создать ни одну механику оружия или пули.</p>
+            <div class="code-block">Vector3 spawnPosition = new Vector3(0, 1, 0);<br>transform.position = spawnPosition;<br>GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);</div>`,
+        ref: `<h2>🔗 Ссылки на другие скрипты — как заставить скрипты общаться</h2>
+            <p>В Unity один объект может иметь несколько скриптов, и им часто нужно взаимодействовать. Например, скрипт оружия должен проверить, сколько патронов в скрипте AmmoManager. Чтобы получить доступ к другому скрипту, вы используете <strong>ссылку</strong>. Самый распространённый способ — метод <code>GetComponent&lt;ТипСкрипта&gt;()</code>, который ищет компонент на том же GameObject. Если скрипт находится на другом объекте, то сначала нужно получить ссылку на этот GameObject через <code>Find()</code> или публичную переменную.</p>
+            <p>Очень важно кешировать ссылки в методе <code>Start()</code> или <code>Awake()</code>. Если вызывать GetComponent каждый кадр в Update, игра будет тормозить из-за лишних операций. Лучшая практика: объявить переменную типа вашего скрипта, а в Start присвоить ей значение через GetComponent. Также можно сделать переменную public и перетащить нужный объект в инспекторе — это самый простой и производительный способ.</p>
+            <p>Пример: у вас есть пуля с компонентом Bullet, и при столкновении она должна нанести урон врагу. В скрипте врага есть метод <code>TakeDamage(int damage)</code>. В пуле вы пишете: <code>Enemy enemy = other.GetComponent&lt;Enemy&gt;(); if (enemy != null) enemy.TakeDamage(10);</code>. Всегда проверяйте, не равен ли компонент null, чтобы избежать ошибок!</p>
+            <div class="code-block">public class Weapon : MonoBehaviour {<br>    private AmmoManager ammo;<br>    void Start() { ammo = GetComponent&lt;AmmoManager&gt;(); }<br>    void Shoot() { if (ammo.currentAmmo > 0) ammo.UseAmmo(); }<br>}</div>`,
+        methods: `<h2>⚙️ Свои методы — организуем логику оружия</h2>
+            <p>Метод (или функция) — это блок кода, который выполняет определённую задачу. Вы можете вызвать метод из другого места скрипта несколько раз, что избавляет от дублирования кода. В Unity стандартные методы, такие как Start и Update, вызываются автоматически. Но вы можете создавать свои методы: например, <code>void Shoot()</code> для выстрела или <code>int GetDamage()</code> для получения урона. Слово void означает, что метод ничего не возвращает, а если указать тип (int, float, bool), то метод обязан вернуть значение через <code>return</code>.</p>
+            <p>Методы могут принимать параметры — данные, которые влияют на их работу. Например, метод <code>void Reload(int bulletsToAdd)</code> увеличивает патроны на указанное число. Это делает код гибким. Параметры указываются в круглых скобках после имени метода. Когда вы вызываете метод, вы передаёте туда конкретные значения — аргументы. Хороший метод делает только одно действие и имеет понятное имя (Shoot, TakeDamage, MoveForward).</p>
+            <p>В контексте оружия метод Shoot будет создавать пулю, уменьшать патроны, возможно, проигрывать звук. Вызывать его удобно из Update при нажатии на кнопку. Разбивайте сложную механику на маленькие методы — это упростит отладку и чтение кода. Никогда не пишите огромный Update на 200 строк; пользуйтесь методами!</p>
+            <div class="code-block">public void Shoot() {<br>    if (ammoCount <= 0) return;<br>    Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);<br>    ammoCount--;<br>    Debug.Log("Выстрел!");<br>}<br>public void AddAmmo(int amount) { ammoCount += amount; }</div>`,
+        unityApi: `<h2>🔫 Instantiate, Destroy, SetActive, Translate — главные инструменты</h2>
+            <p>Эти методы Unity вы будете использовать постоянно при создании оружия. <strong>Instantiate</strong> — создаёт копию префаба (пули, эффекта, врага). Без него невозможно сделать стрельбу, потому что пули нужно динамически порождать. Второй параметр — позиция и поворот (обычно firePoint position и rotation). Instantiate возвращает GameObject, чтобы вы могли сразу настроить пулю, например, задать скорость.</p>
+            <p><strong>Destroy</strong> удаляет объект или компонент. Когда пуля улетела далеко или попала во врага, её нужно удалить для оптимизации. Если передать вторым параметром время (например, 2f), объект удалится через 2 секунды — это удобно для самоуничтожающихся пуль. <strong>SetActive</strong> не удаляет объект, а просто включает/выключает его. Это полезно для переключения оружия: вы делаете несколько видов оружия на объекте и просто включаете активное, выключаете остальные без потери данных.</p>
+            <p><strong>Translate</strong> — простой способ переместить объект без физики: <code>transform.Translate(Vector3.forward * speed * Time.deltaTime);</code>. Для пуль лучше использовать Rigidbody.velocity, но Translate подходит для движущихся платформ или бонусов. print() выводит сообщение в консоль — отличный способ отладки, но в финальной версии убирайте лишние print, чтобы не засорять консоль.</p>
+            <div class="code-block">GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);<br>Destroy(bullet, 3f);<br>gameObject.SetActive(false);<br>transform.Translate(Vector3.forward * 5f * Time.deltaTime);</div>`,
+        physics: `<h2>💥 Коллайдеры и Rigidbody — физика в мире Unity</h2>
+            <p>Чтобы объекты взаимодействовали как в реальном мире (падали, сталкивались, отталкивались), им нужны два компонента: <strong>Collider</strong> (коллайдер) и <strong>Rigidbody</strong>. Коллайдер определяет форму объекта для столкновений: Box Collider для куба, Sphere Collider для сферы, Capsule Collider для персонажа. Без коллайдера объект просто проходит сквозь другие. Rigidbody добавляет объекту физические свойства: массу, гравитацию, скорость. Если вы хотите, чтобы пуля или враг падали под действием гравитации или получали силу от удара, Rigidbody обязателен.</p>
+            <p>Важное различие: если у объекта есть коллайдер, но нет Rigidbody, он считается статическим (стена, пол). Такие объекты не двигаются под действием физики, но другие объекты (с Rigidbody) могут с ними сталкиваться. Для пули обычно нужен Rigidbody, чтобы задать скорость через <code>rb.velocity = direction * speed</code>. Существует режим IsTrigger у коллайдера. Если его включить, объект перестаёт физически отталкиваться, но может генерировать событие OnTriggerEnter — это отлично подходит для зон получения урона, сбора предметов, триггеров дверей.</p>
+            <p>Для перемещения с физикой используйте <code>AddForce</code> или меняйте velocity. Никогда не перемещайте физические объекты через Translate — это нарушает симуляцию. Для пуль идеально: в методе Start получить Rigidbody и задать velocity. Не забудьте для пули выключить гравитацию (useGravity = false), если не нужна дуга полёта.</p>
+            <div class="code-block">Rigidbody rb = GetComponent&lt;Rigidbody&gt;();<br>rb.velocity = transform.forward * bulletSpeed;<br>rb.AddForce(explosionForce * direction, ForceMode.Impulse);</div>`,
+        weapon: `<h2>🔫 Создание простого оружия от А до Я</h2>
+            <p>Создадим классический пистолет в Unity. Вам понадобится префаб пули (сфера или капсула с коллайдером, Rigidbody, и скрипт Bullet). На оружии (например, на камере или руке персонажа) вешаем скрипт Weapon. В скрипте объявляем public GameObject bulletPrefab, public Transform firePoint, public float bulletSpeed = 20f. В методе Update проверяем Input.GetButtonDown("Fire1") или GetMouseButtonDown(0).</p>
+            <p>При выстреле вызываем метод Shoot(). Внутри Instantiate создаём пулю, получаем её Rigidbody и задаём velocity = firePoint.forward * bulletSpeed. Для ограничения частоты стрельбы используйте Time.time. Также полезно добавить Destroy(bullet, 5f) для автоматической очистки.</p>
+            <p>Для реализма можно добавить звук выстрела, анимацию отдачи, эффекты частиц. Но для начала достаточно базовой механики: щелчок мыши — пуля летит вперёд.</p>
+            <div class="code-block">void Shoot() {<br>    GameObject bulletObj = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);<br>    Rigidbody rb = bulletObj.GetComponent&lt;Rigidbody&gt;();<br>    rb.velocity = firePoint.forward * bulletSpeed;<br>    Destroy(bulletObj, 5f);<br>}</div>`,
+        collision: `<h2>🛑 OnCollisionEnter и OnTriggerEnter — реагируем на столкновения</h2>
+            <p>Эти методы вызываются автоматически, когда объект сталкивается с чем-то. <strong>OnCollisionEnter</strong> срабатывает при физическом контакте. Используйте его для пуль, которые должны наносить урон при прямом попадании. <strong>OnTriggerEnter</strong> — когда объект входит в зону коллайдера, помеченного как IsTrigger. Триггеры идеальны для зон урона, бонусов.</p>
+            <p>Внутри этих методов вы можете получить объект, с которым произошло столкновение, проверить его тег или получить компонент. Например, пуля при попадании во врага вызывает метод TakeDamage, уничтожает пулю и создаёт эффект взрыва.</p>
+            <div class="code-block">void OnTriggerEnter(Collider other) {<br>    if (other.CompareTag("Enemy")) {<br>        other.GetComponent&lt;Enemy&gt;().TakeDamage(25);<br>        Destroy(gameObject);<br>    }<br>}</div>`,
+        lifecycle: `<h2>⏱️ Жизненный цикл MonoBehaviour — что и когда вызывается</h2>
+            <p>Когда вы создаёте скрипт в Unity, он наследуется от MonoBehaviour, и у него есть предопределённые методы, которые вызываются автоматически. <strong>Awake()</strong> вызывается, когда объект только создаётся. <strong>Start()</strong> — один раз перед первым кадром. Именно в Start лучше всего инициализировать ссылки на компоненты. <strong>Update()</strong> вызывается каждый кадр — здесь обрабатывают ввод с клавиатуры, мыши.</p>
+            <p>Для физических расчётов существует <strong>FixedUpdate()</strong>, который вызывается через фиксированные интервалы времени. Запомните: стрельбу по нажатию кнопки ставьте в Update, а создание пули и задание скорости — в методе Shoot.</p>
+            <div class="code-block">void Start() { rb = GetComponent&lt;Rigidbody&gt;(); }<br>void Update() { if (Input.GetKeyDown(KeyCode.Space)) Shoot(); }</div>`
+    };
+
+    const topicListItems = document.querySelectorAll('.topic-list li');
+    const methodologyDiv = document.getElementById('methodology-content');
+    function setTopic(topicId) {
+        if (topicsContent[topicId]) methodologyDiv.innerHTML = topicsContent[topicId];
+        else methodologyDiv.innerHTML = `<h2>📘 Выберите тему</h2><p>Нажмите на тему из списка.</p>`;
+        topicListItems.forEach(li => {
+            if (li.dataset.topic === topicId) li.classList.add('active-topic');
+            else li.classList.remove('active-topic');
+        });
+    }
+    topicListItems.forEach(li => li.addEventListener('click', () => setTopic(li.dataset.topic)));
+    setTopic('var');
+
+    // ======================= ВОПРОСЫ (30) с наглядной цветовой индикацией (ИСПРАВЛЕНО) =======================
+    const questions = [
+        { text: "Какой компонент добавляет гравитацию и физику объекту?", options: ["Box Collider", "Rigidbody", "Transform", "Mesh Renderer"], correct: "Rigidbody" },
+        { text: "Какой метод создаёт копию префаба (пули)?", options: ["CreateCopy", "Duplicate", "Instantiate", "New"], correct: "Instantiate" },
+        { text: "Какой тип данных хранит целые числа (патроны)?", options: ["float", "string", "int", "bool"], correct: "int" },
+        { text: "Как переместить объект без учёта физики (простейший способ)?", options: ["AddForce", "Translate", "velocity", "MovePosition"], correct: "Translate" },
+        { text: "Какой метод полностью удаляет объект из памяти?", options: ["Remove", "Destroy", "Deactivate", "Eliminate"], correct: "Destroy" },
+        { text: "Как вывести сообщение в консоль?", options: ["Debug.Log", "print", "Console.WriteLine", "Оба варианта: print и Debug.Log"], correct: "Оба варианта: print и Debug.Log" },
+        { text: "Что делает SetActive(false) с объектом?", options: ["Удаляет навсегда", "Делает неактивным (скрывает и отключает логику)", "Останавливает физику, но оставляет видимым", "Перемещает в центр"], correct: "Делает неактивным (скрывает и отключает логику)" },
+        { text: "Как получить компонент скрипта 'Gun' на том же объекте?", options: ["GetComponent<Gun>()", "Find.Gun()", "GetScript Gun", "Gun.Find()"], correct: "GetComponent<Gun>()" },
+        { text: "Что такое Vector3.forward?", options: ["Вектор (0,0,1) — направление вперёд", "Вектор вверх (0,1,0)", "Случайный вектор", "Позиция камеры"], correct: "Вектор (0,0,1) — направление вперёд" },
+        { text: "Какой метод вызывается при физическом столкновении (без триггера)?", options: ["OnTriggerEnter", "OnCollisionEnter", "OnHit", "OnContact"], correct: "OnCollisionEnter" },
+        { text: "Зачем нужен модификатор public перед переменной?", options: ["Чтобы скрыть переменную", "Чтобы видеть её в инспекторе и обращаться из других скриптов", "Сделать константу"], correct: "Чтобы видеть её в инспекторе и обращаться из других скриптов" },
+        { text: "Как задать скорость пуле через физику?", options: ["transform.Translate", "Rigidbody.velocity", "AddForce каждый кадр", "SetActive"], correct: "Rigidbody.velocity" },
+        { text: "Где лучше инициализировать ссылки GetComponent?", options: ["В Update", "В Start или Awake", "В каждом кадре", "В OnMouseDown"], correct: "В Start или Awake" },
+        { text: "Что произойдёт с Destroy(gameObject, 2f)?", options: ["Уничтожит через 2 секунды", "Уничтожит мгновенно", "Спрячет на 2 секунды", "Выключит через 2 секунды"], correct: "Уничтожит через 2 секунды" },
+        { text: "Зачем нужен IsTrigger на коллайдере?", options: ["Для вызова OnTriggerEnter без физического отталкивания", "Для лучшей графики", "Для автоматического Destroy", "Для звуковых эффектов"], correct: "Для вызова OnTriggerEnter без физического отталкивания" },
+        { text: "Какой метод отвечает за обработку нажатий мыши/клавиатуры в каждом кадре?", options: ["Start", "Update", "FixedUpdate", "LateUpdate"], correct: "Update" },
+        { text: "Что вернёт Instantiate(bulletPrefab)?", options: ["void", "GameObject", "Transform", "Component"], correct: "GameObject" },
+        { text: "Как правильно сравнить тег объекта в OnTriggerEnter?", options: ["other.CompareTag('Enemy')", "other.tag = 'Enemy'", "GetTag(other)"], correct: "other.CompareTag('Enemy')" },
+        { text: "Сколько раз вызывается Start() у объекта?", options: ["Каждый кадр", "Один раз при активации", "Только при удалении", "10 раз в секунду"], correct: "Один раз при активации" },
+        { text: "Как остановить скрипт (чтобы не выполнялся Update) без удаления?", options: ["Destroy(this)", "enabled = false", "gameObject.active = false", "SetActive(false)"], correct: "enabled = false" },
+        { text: "Что такое префаб в Unity?", options: ["Шаблон объекта, сохранённый в проекте", "Скрипт на C#", "Компонент физики"], correct: "Шаблон объекта, сохранённый в проекте" },
+        { text: "Какой метод вызывается при входе в триггер?", options: ["OnCollisionEnter", "OnTriggerEnter", "OnTriggerStay", "OnMouseEnter"], correct: "OnTriggerEnter" },
+        { text: "Какая структура описывает 3D координаты?", options: ["Vector2", "Vector3", "Float3"], correct: "Vector3" },
+        { text: "Можно ли удалить объект в методе OnTriggerEnter?", options: ["Да", "Нет, только OnCollision", "Только в Update"], correct: "Да" },
+        { text: "Что делает Time.deltaTime?", options: ["Время между кадрами для плавности движения", "Общее время игры", "Задержка выстрела"], correct: "Время между кадрами для плавности движения" },
+        { text: "Как получить компонент Rigidbody у созданной пули?", options: ["bullet.GetComponent<Rigidbody>()", "bullet.Rigidbody", "Get<Rigidbody>(bullet)"], correct: "bullet.GetComponent<Rigidbody>()" },
+        { text: "Какой метод автоматически вызывается при уничтожении объекта?", options: ["OnDestroy", "OnDelete", "OnDisable"], correct: "OnDestroy" },
+        { text: "Что означает NullReferenceException?", options: ["Попытка использовать несуществующий объект/компонент", "Нехватка памяти", "Ошибка компиляции"], correct: "Попытка использовать несуществующий объект/компонент" },
+        { text: "Для стрельбы из оружия нужно вызывать Instantiate...", options: ["В методе Shoot", "Только в Start", "В FixedUpdate"], correct: "В методе Shoot" }
+    ];
+
+    let quizAttempts = JSON.parse(localStorage.getItem("unityQuizAttempts")) || new Array(30).fill(0);
+    let quizLocked = JSON.parse(localStorage.getItem("unityQuizLocked")) || new Array(30).fill(false);
+
+    function saveQuizState() {
+        localStorage.setItem("unityQuizAttempts", JSON.stringify(quizAttempts));
+        localStorage.setItem("unityQuizLocked", JSON.stringify(quizLocked));
+        updateStatsPanel();
+    }
+
+    function updateStatsPanel() {
+        const total = questions.length;
+        const solved = quizLocked.filter(v => v === true).length;
+        const remainingAttempts = quizAttempts.reduce((sum, a) => sum + (2 - a), 0);
+        const panel = document.getElementById('statsPanel');
+        if(panel) panel.innerHTML = `
+            <p>✅ Решено: ${solved} / ${total}</p>
+            <p>🔄 Осталось попыток: ${remainingAttempts}</p>
+            <p>📊 Прогресс: ${Math.round(solved/total*100)}%</p>
+        `;
+        const msgDiv = document.getElementById('motivationMsg');
+        if(solved === total) msgDiv.innerHTML = "🏆 Поздравляем! Ты ответил на все вопросы! Ты настоящий мастер Unity! 🎉";
+        else if(solved > total*0.7) msgDiv.innerHTML = "👍 Отлично! Ещё немного — и ты освоишь всё!";
+        else msgDiv.innerHTML = "💪 Продолжай изучать методичку и пробуй отвечать заново. У тебя получится!";
+    }
+
+    // Глобальный обработчик клика по вариантам (чтобы не пересоздавать каждый раз)
+    function handleQuizClick(e) {
+        const el = e.currentTarget;
+        const qidx = parseInt(el.dataset.qidx);
+        if (quizLocked[qidx]) return;
+        
+        const selected = el.dataset.opt;
+        const correct = questions[qidx].correct;
+        const fbDiv = document.getElementById(`fb-${qidx}`);
+        const optionsDiv = document.getElementById(`q-opt-${qidx}`);
+        const allOptions = optionsDiv.querySelectorAll('.quiz-option');
+        
+        // Снимаем выделения с этого вопроса
+        allOptions.forEach(opt => opt.classList.remove('correct-highlight', 'wrong-highlight'));
+        
+        if (selected === correct) {
+            // Правильно: подсветка зелёным
+            el.classList.add('correct-highlight');
+            fbDiv.innerHTML = '✅ Верно! Молодец! Вопрос засчитан.';
+            fbDiv.style.color = 'green';
+            quizLocked[qidx] = true;
+            quizAttempts[qidx] = 0;
+            saveQuizState();
+            // Делаем все варианты некликабельными
+            allOptions.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                opt.classList.add('disabled-opt');
+            });
+            const badge = document.querySelector(`#q-opt-${qidx}`).closest('.qa-card').querySelector('.attempts-badge');
+            if (badge) badge.innerHTML = `🧪 Попыток осталось: 0`;
+        } else {
+            // Неправильно: подсветка красным
+            el.classList.add('wrong-highlight');
+            quizAttempts[qidx]++;
+            if (quizAttempts[qidx] >= 2) {
+                quizLocked[qidx] = true;
+                fbDiv.innerHTML = `❌ Неверно! Правильный ответ: ${correct}. Вопрос закрыт.`;
+                fbDiv.style.color = 'darkred';
+                // Показываем правильный ответ
+                allOptions.forEach(opt => {
+                    if (opt.dataset.opt === correct) opt.classList.add('correct-highlight');
+                    opt.style.pointerEvents = 'none';
+                    opt.classList.add('disabled-opt');
+                });
+                const badge = document.querySelector(`#q-opt-${qidx}`).closest('.qa-card').querySelector('.attempts-badge');
+                if (badge) badge.innerHTML = `🧪 Попыток осталось: 0`;
+            } else {
+                fbDiv.innerHTML = `❌ Неверно! Осталось попыток: ${2 - quizAttempts[qidx]}. Попробуй ещё раз.`;
+                fbDiv.style.color = 'darkred';
+                const badge = document.querySelector(`#q-opt-${qidx}`).closest('.qa-card').querySelector('.attempts-badge');
+                if (badge) badge.innerHTML = `🧪 Попыток осталось: ${2 - quizAttempts[qidx]}`;
+            }
+            saveQuizState();
+        }
+        updateStatsPanel();
+    }
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = '';
+        questions.forEach((q, idx) => {
+            const card = document.createElement('div');
+            card.className = 'qa-card';
+            const isLocked = quizLocked[idx];
+            const attemptsLeft = 2 - quizAttempts[idx];
+            const optionsHtml = q.options.map(opt => `<div class="quiz-option" data-qidx="${idx}" data-opt="${opt}">${opt}</div>`).join('');
+            card.innerHTML = `
+                <div class="quiz-question">${idx+1}. ${q.text}</div>
+                <div class="quiz-options" id="q-opt-${idx}">
+                    ${optionsHtml}
+                </div>
+                <div class="quiz-feedback" id="fb-${idx}"></div>
+                <div class="attempts-badge">🧪 Попыток осталось: ${isLocked ? 0 : attemptsLeft}</div>
+            `;
+            container.appendChild(card);
+        });
+        
+        // Вешаем обработчики
+        document.querySelectorAll('.quiz-option').forEach(el => {
+            el.removeEventListener('click', handleQuizClick);
+            el.addEventListener('click', handleQuizClick);
+            const qidx = parseInt(el.dataset.qidx);
+            if (quizLocked[qidx]) {
+                el.style.pointerEvents = 'none';
+                el.classList.add('disabled-opt');
+            }
+        });
+        
+        // Восстанавливаем сохранённые подсветки для заблокированных вопросов
+        for (let idx = 0; idx < questions.length; idx++) {
+            if (quizLocked[idx]) {
+                const optionsDiv = document.getElementById(`q-opt-${idx}`);
+                if (optionsDiv) {
+                    const correctAnswer = questions[idx].correct;
+                    const allOptions = optionsDiv.querySelectorAll('.quiz-option');
+                    let hasWrongSelection = false;
+                    // находим, был ли выбран неправильный вариант (храним в попытках)
+                    if (quizAttempts[idx] >= 2) {
+                        allOptions.forEach(opt => {
+                            if (opt.dataset.opt === correctAnswer) opt.classList.add('correct-highlight');
+                        });
+                    }
+                }
+            }
+        }
+        updateStatsPanel();
+    }
+
+    // Сброс прогресса
+    document.getElementById('resetProgressBtn')?.addEventListener('click', () => {
+        if(confirm('Сбросить все ответы? Прогресс будет потерян навсегда.')) {
+            localStorage.removeItem('unityQuizAttempts');
+            localStorage.removeItem('unityQuizLocked');
+            quizAttempts = new Array(30).fill(0);
+            quizLocked = new Array(30).fill(false);
+            saveQuizState();
+            renderQuiz();
+        }
+    });
+
+    // =============== ЗАДАНИЯ (развёрнутые, с примерами из игр) ===============
+    const tasks = [
+        { title: "1. Гравитация и столкновение (как в Portal)", desc: "Создай куб и плоскость. Куб должен падать под физикой, при касании пола выводить 'Бум' в консоль. Куб не должен проваливаться под плоскость (используй Box Collider и Rigidbody). Пример из игр: в Portal кубы падают и сталкиваются с полом, издавая звук." },
+        { title: "2. Спавн объектов через триггер (как в Super Mario)", desc: "Создай область-триггер (3D-куб с IsTrigger). Когда игрок (куб с Rigidbody) заходит в триггер, появляется сфера с физикой на высоте 5 метров. Сферы удаляются через 3 секунды. Аналогия: в Марио монеты появляются при касании." },
+        { title: "3. Простое оружие (как в Counter-Strike)", desc: "Создай префаб пули и оружие (камера + точка вылета). При клике мыши пуля вылетает вперёд (Rigidbody.velocity). Пуля удаляется через 4 секунды. Как в CS: пуля летит и исчезает." },
+        { title: "4. Столкновение пули со стеной (как в Battlefield)", desc: "Добавь стены с коллайдерами. Пуля уничтожается при попадании в любую стену (OnCollisionEnter). Пример из Battlefield: пули рикошетят или исчезают." },
+        { title: "5. Ограниченные патроны (как в Resident Evil)", desc: "Скрипт AmmoManager хранит патроны (int). При выстреле патроны уменьшаются, при 0 стрельба невозможна. В RE важно экономить патроны." },
+        { title: "6. Уничтожение врага (как в Doom)", desc: "Враг — красный куб. При попадании пули враг уничтожается (Destroy) и появляется эффект (частицы или доп. куб). В Doom демоны исчезают с эффектом." },
+        { title: "7. Движущаяся платформа + очередь (как в Enter the Gungeon)", desc: "Платформа движется Translate вперёд-назад. Оружие стреляет очередями: 3 пули с задержкой 0.1с. В Gungeon есть очередное оружие." },
+        { title: "8. Переключение оружия (как в Far Cry)", desc: "Два объекта оружия (пистолет и автомат). Клавиши 1 и 2 активируют нужное через SetActive. Автомат стреляет быстрее. Как в Far Cry — колесо выбора оружия." },
+        { title: "9. Мишень-триггер (как в Call of Duty тир)", desc: "Мишень с триггером, при попадании пули мишень уничтожается и счёт (+1). Через 1 секунду мишень появляется в новом месте (Random). Тир в COD — классика." },
+        { title: "10. Гранатомёт с взрывом (как в Team Fortress 2)", desc: "Пуля-граната через 1 секунду создаёт взрыв: OverlapSphere и AddForce ближайшим объектам. В TF2 гранаты разбрасывают врагов." }
+    ];
+
+    function renderTasks() {
+        const container = document.getElementById('tasks-container');
+        container.innerHTML = tasks.map(task => `
+            <div class="task-card">
+                <div class="task-title">${task.title}</div>
+                <p>${task.desc}</p>
+                <div class="task-game-example">🎮 Пример из игр: ${task.desc.split('Пример из игр:')[1] || task.desc.split('Аналогия:')[1] || 'Попробуй реализовать свою версию!'}</div>
+            </div>
+        `).join('');
+    }
+
+    // Табы
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.dataset.tab;
+            contents.forEach(c => c.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            tabs.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if(tabId === 'quiz') updateStatsPanel();
+        });
+    });
+
+    renderQuiz();
+    renderTasks();
+    updateStatsPanel();
+</script>
+</body>
+</html>
