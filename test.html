@@ -369,49 +369,567 @@
 <script>
     // ======================= МЕТОДИЧКА (без изменений - хорошая) =======================
     const topicsContent = {
-        var: `<h2>📦 Переменные и типы данных — основа любого скрипта</h2>
-            <p>Переменная — это именованная ячейка памяти, где хранятся данные. В Unity большинство переменных объявляются внутри класса, унаследованного от MonoBehaviour. По сути, переменная — это контейнер: вы кладёте туда число, текст или логическое значение и потом используете в любом месте скрипта. Без переменных невозможно хранить количество патронов, скорость пули или имя игрока.</p>
-            <p>В C# внутри Unity есть несколько основных типов: <strong>int</strong> (целые числа, например, 5, -10, 100), <strong>float</strong> (числа с плавающей точкой, например, 3.14f, 0.5f), <strong>string</strong> (текст в кавычках: "Пистолет") и <strong>bool</strong> (только true или false). Если поставить модификатор <strong>public</strong>, переменная появится в инспекторе Unity — это очень удобно для настройки оружия без переписывания кода. А <strong>private</strong> скрывает переменную, но к ней можно обратиться внутри скрипта.</p>
-            <p>Пример из игры: <code>public int ammo = 30;</code> — это патроны, которые вы видите в инспекторе. <code>private float fireRate = 0.5f;</code> — скорострельность, скрытая от редактора. Помните: имена переменных должны быть понятными (bulletSpeed, health), а не "a", "b". Это сделает ваш код читаемым и для других разработчиков.</p>
-            <div class="code-block">public int maxAmmo = 30;<br>public float bulletSpeed = 20f;<br>private string weaponName = "Пистолет";<br>bool isReloading = false;</div>`,
-        special: `<h2>🎯 GameObject, Transform и Vector3 — кирпичики сцены</h2>
-            <p>Любой объект на сцене в Unity — это <strong>GameObject</strong>. Это может быть куб, камера, источник света, префаб пули. Каждый GameObject обязательно имеет компонент <strong>Transform</strong>, который хранит его позицию (Position), поворот (Rotation) и масштаб (Scale). Без Transform объект просто не может существовать в игровом пространстве. Вы всегда можете получить доступ к Transform через переменную <code>transform</code> (строчными буквами) внутри скрипта.</p>
-            <p><strong>Vector3</strong> — это структура для работы с 3D-координатами. Она содержит три поля: x, y, z. Используйте Vector3 для указания позиции, направления движения, сил. Например, <code>new Vector3(0, 5, 0)</code> — это точка на 5 единиц выше начала координат. Встроенные сокращения: Vector3.forward (0,0,1), Vector3.up (0,1,0), Vector3.right (1,0,0). Для движения пули нам понадобится направление <code>firePoint.forward</code>.</p>
-            <p>Практический совет: если нужно найти объект на сцене по имени, используйте <code>GameObject.Find("Имя")</code>, но лучше заранее создавать публичные переменные и перетаскивать объекты в инспекторе — это быстрее и надежнее. Transform позволяет перемещать объект: <code>transform.position = new Vector3(10, 0, 0);</code> или поворачивать через <code>transform.Rotate(0, 90, 0);</code>. Без этих знаний невозможно создать ни одну механику оружия или пули.</p>
-            <div class="code-block">Vector3 spawnPosition = new Vector3(0, 1, 0);<br>transform.position = spawnPosition;<br>GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);</div>`,
-        ref: `<h2>🔗 Ссылки на другие скрипты — как заставить скрипты общаться</h2>
-            <p>В Unity один объект может иметь несколько скриптов, и им часто нужно взаимодействовать. Например, скрипт оружия должен проверить, сколько патронов в скрипте AmmoManager. Чтобы получить доступ к другому скрипту, вы используете <strong>ссылку</strong>. Самый распространённый способ — метод <code>GetComponent&lt;ТипСкрипта&gt;()</code>, который ищет компонент на том же GameObject. Если скрипт находится на другом объекте, то сначала нужно получить ссылку на этот GameObject через <code>Find()</code> или публичную переменную.</p>
-            <p>Очень важно кешировать ссылки в методе <code>Start()</code> или <code>Awake()</code>. Если вызывать GetComponent каждый кадр в Update, игра будет тормозить из-за лишних операций. Лучшая практика: объявить переменную типа вашего скрипта, а в Start присвоить ей значение через GetComponent. Также можно сделать переменную public и перетащить нужный объект в инспекторе — это самый простой и производительный способ.</p>
-            <p>Пример: у вас есть пуля с компонентом Bullet, и при столкновении она должна нанести урон врагу. В скрипте врага есть метод <code>TakeDamage(int damage)</code>. В пуле вы пишете: <code>Enemy enemy = other.GetComponent&lt;Enemy&gt;(); if (enemy != null) enemy.TakeDamage(10);</code>. Всегда проверяйте, не равен ли компонент null, чтобы избежать ошибок!</p>
-            <div class="code-block">public class Weapon : MonoBehaviour {<br>    private AmmoManager ammo;<br>    void Start() { ammo = GetComponent&lt;AmmoManager&gt;(); }<br>    void Shoot() { if (ammo.currentAmmo > 0) ammo.UseAmmo(); }<br>}</div>`,
-        methods: `<h2>⚙️ Свои методы — организуем логику оружия</h2>
-            <p>Метод (или функция) — это блок кода, который выполняет определённую задачу. Вы можете вызвать метод из другого места скрипта несколько раз, что избавляет от дублирования кода. В Unity стандартные методы, такие как Start и Update, вызываются автоматически. Но вы можете создавать свои методы: например, <code>void Shoot()</code> для выстрела или <code>int GetDamage()</code> для получения урона. Слово void означает, что метод ничего не возвращает, а если указать тип (int, float, bool), то метод обязан вернуть значение через <code>return</code>.</p>
-            <p>Методы могут принимать параметры — данные, которые влияют на их работу. Например, метод <code>void Reload(int bulletsToAdd)</code> увеличивает патроны на указанное число. Это делает код гибким. Параметры указываются в круглых скобках после имени метода. Когда вы вызываете метод, вы передаёте туда конкретные значения — аргументы. Хороший метод делает только одно действие и имеет понятное имя (Shoot, TakeDamage, MoveForward).</p>
-            <p>В контексте оружия метод Shoot будет создавать пулю, уменьшать патроны, возможно, проигрывать звук. Вызывать его удобно из Update при нажатии на кнопку. Разбивайте сложную механику на маленькие методы — это упростит отладку и чтение кода. Никогда не пишите огромный Update на 200 строк; пользуйтесь методами!</p>
-            <div class="code-block">public void Shoot() {<br>    if (ammoCount <= 0) return;<br>    Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);<br>    ammoCount--;<br>    Debug.Log("Выстрел!");<br>}<br>public void AddAmmo(int amount) { ammoCount += amount; }</div>`,
-        unityApi: `<h2>🔫 Instantiate, Destroy, SetActive, Translate — главные инструменты</h2>
-            <p>Эти методы Unity вы будете использовать постоянно при создании оружия. <strong>Instantiate</strong> — создаёт копию префаба (пули, эффекта, врага). Без него невозможно сделать стрельбу, потому что пули нужно динамически порождать. Второй параметр — позиция и поворот (обычно firePoint position и rotation). Instantiate возвращает GameObject, чтобы вы могли сразу настроить пулю, например, задать скорость.</p>
-            <p><strong>Destroy</strong> удаляет объект или компонент. Когда пуля улетела далеко или попала во врага, её нужно удалить для оптимизации. Если передать вторым параметром время (например, 2f), объект удалится через 2 секунды — это удобно для самоуничтожающихся пуль. <strong>SetActive</strong> не удаляет объект, а просто включает/выключает его. Это полезно для переключения оружия: вы делаете несколько видов оружия на объекте и просто включаете активное, выключаете остальные без потери данных.</p>
-            <p><strong>Translate</strong> — простой способ переместить объект без физики: <code>transform.Translate(Vector3.forward * speed * Time.deltaTime);</code>. Для пуль лучше использовать Rigidbody.velocity, но Translate подходит для движущихся платформ или бонусов. print() выводит сообщение в консоль — отличный способ отладки, но в финальной версии убирайте лишние print, чтобы не засорять консоль.</p>
-            <div class="code-block">GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);<br>Destroy(bullet, 3f);<br>gameObject.SetActive(false);<br>transform.Translate(Vector3.forward * 5f * Time.deltaTime);</div>`,
-        physics: `<h2>💥 Коллайдеры и Rigidbody — физика в мире Unity</h2>
-            <p>Чтобы объекты взаимодействовали как в реальном мире (падали, сталкивались, отталкивались), им нужны два компонента: <strong>Collider</strong> (коллайдер) и <strong>Rigidbody</strong>. Коллайдер определяет форму объекта для столкновений: Box Collider для куба, Sphere Collider для сферы, Capsule Collider для персонажа. Без коллайдера объект просто проходит сквозь другие. Rigidbody добавляет объекту физические свойства: массу, гравитацию, скорость. Если вы хотите, чтобы пуля или враг падали под действием гравитации или получали силу от удара, Rigidbody обязателен.</p>
-            <p>Важное различие: если у объекта есть коллайдер, но нет Rigidbody, он считается статическим (стена, пол). Такие объекты не двигаются под действием физики, но другие объекты (с Rigidbody) могут с ними сталкиваться. Для пули обычно нужен Rigidbody, чтобы задать скорость через <code>rb.velocity = direction * speed</code>. Существует режим IsTrigger у коллайдера. Если его включить, объект перестаёт физически отталкиваться, но может генерировать событие OnTriggerEnter — это отлично подходит для зон получения урона, сбора предметов, триггеров дверей.</p>
-            <p>Для перемещения с физикой используйте <code>AddForce</code> или меняйте velocity. Никогда не перемещайте физические объекты через Translate — это нарушает симуляцию. Для пуль идеально: в методе Start получить Rigidbody и задать velocity. Не забудьте для пули выключить гравитацию (useGravity = false), если не нужна дуга полёта.</p>
-            <div class="code-block">Rigidbody rb = GetComponent&lt;Rigidbody&gt;();<br>rb.velocity = transform.forward * bulletSpeed;<br>rb.AddForce(explosionForce * direction, ForceMode.Impulse);</div>`,
-        weapon: `<h2>🔫 Создание простого оружия от А до Я</h2>
-            <p>Создадим классический пистолет в Unity. Вам понадобится префаб пули (сфера или капсула с коллайдером, Rigidbody, и скрипт Bullet). На оружии (например, на камере или руке персонажа) вешаем скрипт Weapon. В скрипте объявляем public GameObject bulletPrefab, public Transform firePoint, public float bulletSpeed = 20f. В методе Update проверяем Input.GetButtonDown("Fire1") или GetMouseButtonDown(0).</p>
-            <p>При выстреле вызываем метод Shoot(). Внутри Instantiate создаём пулю, получаем её Rigidbody и задаём velocity = firePoint.forward * bulletSpeed. Для ограничения частоты стрельбы используйте Time.time. Также полезно добавить Destroy(bullet, 5f) для автоматической очистки.</p>
-            <p>Для реализма можно добавить звук выстрела, анимацию отдачи, эффекты частиц. Но для начала достаточно базовой механики: щелчок мыши — пуля летит вперёд.</p>
-            <div class="code-block">void Shoot() {<br>    GameObject bulletObj = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);<br>    Rigidbody rb = bulletObj.GetComponent&lt;Rigidbody&gt;();<br>    rb.velocity = firePoint.forward * bulletSpeed;<br>    Destroy(bulletObj, 5f);<br>}</div>`,
-        collision: `<h2>🛑 OnCollisionEnter и OnTriggerEnter — реагируем на столкновения</h2>
-            <p>Эти методы вызываются автоматически, когда объект сталкивается с чем-то. <strong>OnCollisionEnter</strong> срабатывает при физическом контакте. Используйте его для пуль, которые должны наносить урон при прямом попадании. <strong>OnTriggerEnter</strong> — когда объект входит в зону коллайдера, помеченного как IsTrigger. Триггеры идеальны для зон урона, бонусов.</p>
-            <p>Внутри этих методов вы можете получить объект, с которым произошло столкновение, проверить его тег или получить компонент. Например, пуля при попадании во врага вызывает метод TakeDamage, уничтожает пулю и создаёт эффект взрыва.</p>
-            <div class="code-block">void OnTriggerEnter(Collider other) {<br>    if (other.CompareTag("Enemy")) {<br>        other.GetComponent&lt;Enemy&gt;().TakeDamage(25);<br>        Destroy(gameObject);<br>    }<br>}</div>`,
-        lifecycle: `<h2>⏱️ Жизненный цикл MonoBehaviour — что и когда вызывается</h2>
-            <p>Когда вы создаёте скрипт в Unity, он наследуется от MonoBehaviour, и у него есть предопределённые методы, которые вызываются автоматически. <strong>Awake()</strong> вызывается, когда объект только создаётся. <strong>Start()</strong> — один раз перед первым кадром. Именно в Start лучше всего инициализировать ссылки на компоненты. <strong>Update()</strong> вызывается каждый кадр — здесь обрабатывают ввод с клавиатуры, мыши.</p>
-            <p>Для физических расчётов существует <strong>FixedUpdate()</strong>, который вызывается через фиксированные интервалы времени. Запомните: стрельбу по нажатию кнопки ставьте в Update, а создание пули и задание скорости — в методе Shoot.</p>
-            <div class="code-block">void Start() { rb = GetComponent&lt;Rigidbody&gt;(); }<br>void Update() { if (Input.GetKeyDown(KeyCode.Space)) Shoot(); }</div>`
+        ```javascript
+const lessonBlocks = {
+  var: `
+    <section class="lesson-section">
+      <h2>📦 Переменные и типы данных в C# — основа любого скрипта</h2>
+
+      <p>
+        Переменная — это место, где программа хранит данные. Проще говоря, это именованный контейнер,
+        в который можно положить число, текст, состояние объекта или ссылку на другой объект. В Unity
+        переменные используются постоянно: через них мы храним здоровье игрока, скорость движения,
+        количество патронов, силу выстрела, имя оружия, состояние перезарядки и многое другое.
+      </p>
+
+      <p>
+        В C# переменная объявляется через тип данных и имя. Тип данных показывает, какую именно
+        информацию можно хранить в переменной. Например, если нам нужно хранить целые числа, мы
+        используем <strong>int</strong>. Если нужны дробные значения, например скорость 7.5 или время
+        0.3 секунды, используется <strong>float</strong>. Для текста используется <strong>string</strong>,
+        а для значений «да/нет» — <strong>bool</strong>.
+      </p>
+
+      <p>
+        В Unity особенно важно понимать разницу между <strong>public</strong> и <strong>private</strong>.
+        Если переменная объявлена как <strong>public</strong>, она будет видна в инспекторе Unity.
+        Это удобно, потому что можно менять значения прямо в редакторе, не открывая код. Например,
+        можно настроить скорость пули, максимальное количество патронов или силу прыжка. Если переменная
+        объявлена как <strong>private</strong>, она скрыта от инспектора и доступна только внутри самого скрипта.
+      </p>
+
+      <p>
+        Хорошая практика — давать переменным понятные имена. Например, <code>bulletSpeed</code>,
+        <code>currentAmmo</code>, <code>playerHealth</code>. Плохие имена вроде <code>a</code>,
+        <code>b</code> или <code>x1</code> быстро делают код непонятным. Особенно это мешает, когда
+        проект становится больше и в нём появляется несколько скриптов.
+      </p>
+
+      <div class="code-block">
+        public int maxAmmo = 30;<br>
+        public int currentAmmo = 10;<br>
+        public float bulletSpeed = 20f;<br>
+        public string weaponName = "Пистолет";<br>
+        private bool isReloading = false;
+      </div>
+
+      <p>
+        В этом примере <code>maxAmmo</code> хранит максимальное количество патронов,
+        <code>currentAmmo</code> — текущее количество патронов, <code>bulletSpeed</code> — скорость пули,
+        <code>weaponName</code> — название оружия, а <code>isReloading</code> показывает, идёт ли сейчас
+        перезарядка.
+      </p>
+    </section>
+  `,
+
+  special: `
+    <section class="lesson-section">
+      <h2>🎯 GameObject, Transform и Vector3 — основа объектов в Unity</h2>
+
+      <p>
+        Почти всё, что находится на сцене Unity, является объектом типа <strong>GameObject</strong>.
+        Это может быть игрок, камера, оружие, пуля, враг, источник света, дверь, кнопка интерфейса
+        или пустой объект, который используется как точка спавна.
+      </p>
+
+      <p>
+        У каждого GameObject обязательно есть компонент <strong>Transform</strong>. Он отвечает за
+        положение объекта в пространстве, его поворот и размер. В инспекторе Unity это три основные
+        группы значений: Position, Rotation и Scale. Если объект находится в сцене, значит у него
+        обязательно есть Transform.
+      </p>
+
+      <p>
+        Внутри скрипта доступ к Transform текущего объекта можно получить через переменную
+        <code>transform</code>. Например, через неё можно изменить позицию объекта, повернуть его или
+        получить направление, в которое он смотрит.
+      </p>
+
+      <p>
+        Для работы с координатами в 3D-пространстве используется <strong>Vector3</strong>. Это структура,
+        которая хранит три значения: <code>x</code>, <code>y</code> и <code>z</code>. Через Vector3 можно
+        задавать позицию объекта, направление движения, силу толчка или точку, куда должна лететь пуля.
+      </p>
+
+      <p>
+        Например, <code>new Vector3(0, 5, 0)</code> означает точку, которая находится на 5 единиц выше
+        центра сцены по оси Y. В Unity также есть готовые направления:
+        <code>Vector3.forward</code>, <code>Vector3.up</code>, <code>Vector3.right</code>.
+      </p>
+
+      <div class="code-block">
+        Vector3 spawnPosition = new Vector3(0, 1, 0);<br>
+        transform.position = spawnPosition;<br><br>
+
+        transform.Rotate(0, 90, 0);<br><br>
+
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+      </div>
+
+      <p>
+        В механике оружия Transform используется постоянно. Например, точка вылета пули обычно хранится
+        в отдельном объекте <code>firePoint</code>. Пуля создаётся в позиции этого объекта и получает
+        его поворот. Благодаря этому она появляется именно из нужного места — например, из дула оружия.
+      </p>
+    </section>
+  `,
+
+  ref: `
+    <section class="lesson-section">
+      <h2>🔗 Ссылки на другие скрипты — как скрипты взаимодействуют между собой</h2>
+
+      <p>
+        В Unity один объект часто должен получать информацию из другого объекта или другого скрипта.
+        Например, скрипт оружия должен знать, сколько осталось патронов. Скрипт пули должен сообщить
+        врагу, что он получил урон. Скрипт игрока может обращаться к скрипту интерфейса, чтобы обновить
+        количество здоровья на экране.
+      </p>
+
+      <p>
+        Для этого используются ссылки на компоненты. Один из самых частых способов получить другой
+        компонент — метод <code>GetComponent&lt;ТипСкрипта&gt;()</code>. Он ищет нужный компонент на том же
+        GameObject, где находится текущий скрипт.
+      </p>
+
+      <p>
+        Если нужный скрипт находится на другом объекте, удобнее создать <strong>public-переменную</strong>
+        и перетащить нужный объект в инспекторе Unity. Это проще, понятнее и надёжнее, чем постоянно
+        искать объект через <code>GameObject.Find()</code>.
+      </p>
+
+      <p>
+        Важно: не стоит вызывать <code>GetComponent</code> каждый кадр в <code>Update()</code>, если это
+        не требуется. Лучше один раз получить ссылку в <code>Start()</code> или <code>Awake()</code>,
+        сохранить её в переменную и потом использовать уже готовую ссылку.
+      </p>
+
+      <div class="code-block">
+        public class Weapon : MonoBehaviour<br>
+        {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;private AmmoManager ammoManager;<br><br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;void Start()<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ammoManager = GetComponent&lt;AmmoManager&gt;();<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br><br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;void Shoot()<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (ammoManager.currentAmmo &gt; 0)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ammoManager.UseAmmo();<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        }
+      </div>
+
+      <p>
+        Также всегда нужно проверять, найден ли компонент. Если попытаться обратиться к компоненту,
+        которого нет, Unity выдаст ошибку <code>NullReferenceException</code>. Поэтому в важных местах
+        стоит делать проверку на <code>null</code>.
+      </p>
+
+      <div class="code-block">
+        Enemy enemy = other.GetComponent&lt;Enemy&gt;();<br><br>
+
+        if (enemy != null)<br>
+        {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;enemy.TakeDamage(25);<br>
+        }
+      </div>
+    </section>
+  `,
+
+  methods: `
+    <section class="lesson-section">
+      <h2>⚙️ Методы — как разделять код на понятные действия</h2>
+
+      <p>
+        Метод — это отдельный блок кода, который выполняет конкретную задачу. Например, можно создать
+        метод для выстрела, метод для перезарядки, метод для нанесения урона или метод для обновления
+        интерфейса. Это помогает не писать весь код в одном месте и делает скрипт намного понятнее.
+      </p>
+
+      <p>
+        В Unity есть встроенные методы, которые вызываются автоматически: <code>Start()</code>,
+        <code>Update()</code>, <code>FixedUpdate()</code>, <code>OnTriggerEnter()</code> и другие.
+        Но кроме них можно создавать собственные методы.
+      </p>
+
+      <p>
+        Например, метод <code>Shoot()</code> может отвечать только за выстрел: проверить патроны,
+        создать пулю, уменьшить количество патронов и запустить звук. А метод <code>Reload()</code>
+        будет заниматься только перезарядкой. Такой подход делает код более чистым.
+      </p>
+
+      <p>
+        Если перед названием метода написано <strong>void</strong>, значит метод ничего не возвращает.
+        Если вместо <strong>void</strong> указан тип, например <strong>int</strong>, <strong>float</strong>
+        или <strong>bool</strong>, значит метод должен вернуть результат через <code>return</code>.
+      </p>
+
+      <div class="code-block">
+        public void Shoot()<br>
+        {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if (ammoCount &lt;= 0)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br><br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;ammoCount--;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Debug.Log("Выстрел!");<br>
+        }<br><br>
+
+        public void AddAmmo(int amount)<br>
+        {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;ammoCount += amount;<br>
+        }
+      </div>
+
+      <p>
+        Методы также могут принимать параметры. Параметр — это значение, которое передаётся в метод
+        при вызове. Например, в метод <code>AddAmmo(int amount)</code> можно передать число патронов,
+        которое нужно добавить. Благодаря этому один и тот же метод можно использовать в разных ситуациях.
+      </p>
+
+      <p>
+        Главное правило: один метод должен отвечать за одно понятное действие. Не стоит писать огромный
+        <code>Update()</code> на сотни строк. Лучше разделить код на маленькие методы с понятными именами:
+        <code>Shoot()</code>, <code>Reload()</code>, <code>TakeDamage()</code>, <code>UpdateAmmoUI()</code>.
+      </p>
+    </section>
+  `,
+
+  unityApi: `
+    <section class="lesson-section">
+      <h2>🔫 Instantiate, Destroy, SetActive и Translate — важные методы Unity</h2>
+
+      <p>
+        В Unity есть несколько методов, которые используются почти в каждом игровом проекте.
+        Особенно часто они встречаются при создании оружия, пуль, эффектов, врагов и интерактивных объектов.
+      </p>
+
+      <p>
+        <strong>Instantiate</strong> создаёт копию объекта или префаба. Например, когда игрок стреляет,
+        мы не создаём пулю вручную на сцене заранее. Вместо этого у нас есть префаб пули, а во время
+        выстрела Unity создаёт его копию через <code>Instantiate</code>.
+      </p>
+
+      <p>
+        Обычно при создании объекта мы указываем три вещи: какой объект создать, в какой позиции создать
+        и с каким поворотом. Для оружия это чаще всего выглядит так: создать пулю в позиции
+        <code>firePoint.position</code> и с поворотом <code>firePoint.rotation</code>.
+      </p>
+
+      <div class="code-block">
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+      </div>
+
+      <p>
+        <strong>Destroy</strong> удаляет объект со сцены. Это важно для оптимизации. Например, если пули
+        не удалять, они будут накапливаться в сцене и со временем игра может начать тормозить.
+        Можно удалить объект сразу или через определённое время.
+      </p>
+
+      <div class="code-block">
+        Destroy(bullet);<br>
+        Destroy(bullet, 5f);
+      </div>
+
+      <p>
+        <strong>SetActive</strong> включает или выключает объект. В отличие от <code>Destroy</code>,
+        объект не удаляется окончательно. Он просто становится активным или неактивным. Это удобно,
+        например, для переключения оружия, открытия и закрытия интерфейса, включения эффектов.
+      </p>
+
+      <div class="code-block">
+        gameObject.SetActive(false);<br>
+        weaponObject.SetActive(true);
+      </div>
+
+      <p>
+        <strong>Translate</strong> перемещает объект в заданном направлении. Этот способ подходит для
+        простого движения без физики. Но если объект использует Rigidbody и должен корректно сталкиваться
+        с другими объектами, лучше двигать его через физику: <code>velocity</code>, <code>AddForce</code>
+        или <code>MovePosition</code>.
+      </p>
+
+      <div class="code-block">
+        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+      </div>
+
+      <p>
+        Для пули чаще всего лучше использовать Rigidbody, потому что пуля должна лететь стабильно,
+        быстро и корректно взаимодействовать с коллайдерами.
+      </p>
+    </section>
+  `,
+
+  physics: `
+    <section class="lesson-section">
+      <h2>💥 Collider и Rigidbody — как работает физика в Unity</h2>
+
+      <p>
+        Чтобы объекты в Unity могли сталкиваться, падать, отталкиваться и реагировать друг на друга,
+        используются компоненты <strong>Collider</strong> и <strong>Rigidbody</strong>.
+      </p>
+
+      <p>
+        <strong>Collider</strong> задаёт форму объекта для столкновений. Это не обязательно видимая форма,
+        а именно физическая область, по которой Unity понимает, где объект может столкнуться с другим
+        объектом. Например, у куба может быть <strong>Box Collider</strong>, у шара —
+        <strong>Sphere Collider</strong>, у персонажа — <strong>Capsule Collider</strong>.
+      </p>
+
+      <p>
+        Если у объекта нет Collider, другие физические объекты могут проходить сквозь него. Поэтому
+        для стен, пола, врагов, пуль и предметов обычно нужен коллайдер.
+      </p>
+
+      <p>
+        <strong>Rigidbody</strong> добавляет объекту физическое поведение. Объект с Rigidbody может иметь
+        массу, скорость, гравитацию и реагировать на силы. Например, если мы хотим, чтобы пуля летела
+        вперёд, можно получить её Rigidbody и задать скорость.
+      </p>
+
+      <div class="code-block">
+        Rigidbody rb = GetComponent&lt;Rigidbody&gt;();<br>
+        rb.velocity = transform.forward * bulletSpeed;
+      </div>
+
+      <p>
+        Для пули часто отключают гравитацию, чтобы она летела прямо, а не падала вниз по дуге. Это можно
+        сделать в инспекторе Unity, сняв галочку <strong>Use Gravity</strong>, или через код.
+      </p>
+
+      <div class="code-block">
+        rb.useGravity = false;
+      </div>
+
+      <p>
+        У Collider есть режим <strong>Is Trigger</strong>. Если он включён, объект не будет физически
+        отталкиваться при столкновении, но Unity сможет определить момент входа в эту зону через
+        <code>OnTriggerEnter()</code>. Это удобно для зон урона, аптечек, бонусов, дверей и невидимых
+        областей активации событий.
+      </p>
+
+      <p>
+        Если объект должен двигаться с физикой, не стоит постоянно менять его позицию через
+        <code>transform.position</code> или <code>Translate</code>. Лучше использовать Rigidbody, потому что
+        тогда Unity сможет корректно рассчитывать столкновения.
+      </p>
+
+      <div class="code-block">
+        rb.AddForce(transform.forward * force, ForceMode.Impulse);
+      </div>
+    </section>
+  `,
+
+  weapon: `
+    <section class="lesson-section">
+      <h2>🔫 Создание простого оружия в Unity</h2>
+
+      <p>
+        Чтобы создать простое оружие, нам понадобится несколько элементов: префаб пули, точка вылета
+        пули, скрипт оружия и Rigidbody на пуле. Такая система подойдёт для базового пистолета,
+        автомата или любого другого оружия, которое стреляет физическими снарядами.
+      </p>
+
+      <p>
+        Сначала нужно создать объект пули. Это может быть маленькая сфера, капсула или любой другой
+        объект. На пулю нужно добавить Collider и Rigidbody. Также желательно отключить гравитацию,
+        если пуля должна лететь прямо.
+      </p>
+
+      <p>
+        Затем нужно создать префаб пули. Для этого объект пули перетаскивается из Hierarchy в Project.
+        После этого его можно удалять со сцены и создавать копии через код.
+      </p>
+
+      <p>
+        На оружии или на камере создаётся точка вылета пули — обычно это пустой объект
+        <code>firePoint</code>. Его нужно поставить туда, откуда должна появляться пуля: например,
+        в районе дула оружия.
+      </p>
+
+      <p>
+        В скрипте оружия мы создаём переменные для префаба пули, точки выстрела, скорости пули,
+        количества патронов и задержки между выстрелами. При нажатии на кнопку мыши вызывается метод
+        <code>Shoot()</code>.
+      </p>
+
+      <div class="code-block">
+        public GameObject bulletPrefab;<br>
+        public Transform firePoint;<br>
+        public float bulletSpeed = 20f;<br>
+        public int ammoCount = 10;<br><br>
+
+        void Update()<br>
+        {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if (Input.GetMouseButtonDown(0))<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Shoot();<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        }<br><br>
+
+        void Shoot()<br>
+        {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if (ammoCount &lt;= 0)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br><br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;GameObject bulletObj = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Rigidbody rb = bulletObj.GetComponent&lt;Rigidbody&gt;();<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;rb.velocity = firePoint.forward * bulletSpeed;<br><br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;ammoCount--;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Destroy(bulletObj, 5f);<br>
+        }
+      </div>
+
+      <p>
+        В этом коде сначала проверяется, есть ли патроны. Если патронов нет, метод просто завершается.
+        Если патроны есть, создаётся пуля, у неё берётся Rigidbody, и ей задаётся скорость в направлении
+        <code>firePoint.forward</code>. После этого количество патронов уменьшается на 1, а сама пуля
+        удаляется через 5 секунд.
+      </p>
+
+      <p>
+        Позже эту систему можно расширить: добавить перезарядку, звук выстрела, анимацию отдачи,
+        разброс пуль, разные типы оружия, эффекты попадания и урон по врагам.
+      </p>
+    </section>
+  `,
+
+  collision: `
+    <section class="lesson-section">
+      <h2>🛑 OnCollisionEnter и OnTriggerEnter — обработка столкновений</h2>
+
+      <p>
+        В Unity есть специальные методы, которые вызываются автоматически, когда объект сталкивается
+        с другим объектом или входит в триггерную зону. Самые важные из них —
+        <strong>OnCollisionEnter</strong> и <strong>OnTriggerEnter</strong>.
+      </p>
+
+      <p>
+        <strong>OnCollisionEnter</strong> используется, когда происходит обычное физическое столкновение.
+        Например, пуля ударилась о стену, коробка упала на пол, игрок столкнулся с препятствием.
+        При таком столкновении объекты физически взаимодействуют друг с другом.
+      </p>
+
+      <p>
+        <strong>OnTriggerEnter</strong> используется, когда один объект входит в область коллайдера,
+        у которого включён режим <strong>Is Trigger</strong>. В этом случае физического отталкивания
+        может не быть, но событие всё равно сработает. Это удобно для бонусов, зон урона, чекпоинтов,
+        дверей и невидимых областей.
+      </p>
+
+      <p>
+        Внутри этих методов можно проверить, с каким объектом произошло столкновение. Например, можно
+        проверить тег объекта через <code>CompareTag()</code> или попытаться получить нужный компонент
+        через <code>GetComponent</code>.
+      </p>
+
+      <div class="code-block">
+        void OnTriggerEnter(Collider other)<br>
+        {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if (other.CompareTag("Enemy"))<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enemy enemy = other.GetComponent&lt;Enemy&gt;();<br><br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (enemy != null)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enemy.TakeDamage(25);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br><br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Destroy(gameObject);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        }
+      </div>
+
+      <p>
+        В этом примере пуля проверяет, столкнулась ли она с объектом, у которого есть тег
+        <code>Enemy</code>. Если это враг, пуля получает компонент <code>Enemy</code>, вызывает метод
+        нанесения урона и уничтожает сама себя.
+      </p>
+
+      <p>
+        Важно помнить: чтобы события столкновения работали корректно, у объектов должны быть Collider,
+        а в некоторых случаях ещё и Rigidbody. Без этих компонентов Unity может просто не вызвать нужный
+        метод.
+      </p>
+    </section>
+  `,
+
+  lifecycle: `
+    <section class="lesson-section">
+      <h2>⏱️ Жизненный цикл MonoBehaviour — что и когда вызывается</h2>
+
+      <p>
+        Почти каждый обычный скрипт в Unity наследуется от <strong>MonoBehaviour</strong>. Благодаря этому
+        Unity может автоматически вызывать определённые методы в нужный момент. Эти методы называются
+        методами жизненного цикла.
+      </p>
+
+      <p>
+        <strong>Awake()</strong> вызывается самым первым, когда объект создаётся или загружается на сцену.
+        Этот метод удобно использовать для самой ранней инициализации: например, чтобы получить ссылки
+        на компоненты или подготовить внутренние переменные.
+      </p>
+
+      <p>
+        <strong>Start()</strong> вызывается один раз перед первым кадром, если объект активен. Его часто
+        используют для начальной настройки объекта. Например, в <code>Start()</code> можно получить
+        Rigidbody, задать начальные значения, настроить здоровье или подготовить интерфейс.
+      </p>
+
+      <p>
+        <strong>Update()</strong> вызывается каждый кадр. Здесь обычно проверяют ввод с клавиатуры,
+        мыши или геймпада. Например, если игрок нажал левую кнопку мыши, можно вызвать метод
+        <code>Shoot()</code>. Но тяжёлую физику лучше не делать в <code>Update()</code>.
+      </p>
+
+      <p>
+        <strong>FixedUpdate()</strong> вызывается через фиксированные промежутки времени и используется
+        для физики. Если вы работаете с Rigidbody, силами или физическим движением, лучше делать это
+        именно в <code>FixedUpdate()</code>.
+      </p>
+
+      <div class="code-block">
+        private Rigidbody rb;<br><br>
+
+        void Awake()<br>
+        {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;rb = GetComponent&lt;Rigidbody&gt;();<br>
+        }<br><br>
+
+        void Start()<br>
+        {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Debug.Log("Объект готов к работе");<br>
+        }<br><br>
+
+        void Update()<br>
+        {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if (Input.GetMouseButtonDown(0))<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Shoot();<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        }
+      </div>
+
+      <p>
+        Если говорить простыми словами: <code>Awake()</code> — ранняя подготовка,
+        <code>Start()</code> — стартовая настройка, <code>Update()</code> — действия каждый кадр,
+        а <code>FixedUpdate()</code> — работа с физикой. Понимание этого порядка помогает избежать
+        многих ошибок в Unity.
+      </p>
+    </section>
+  `
+};
+```
+
     };
 
     const topicListItems = document.querySelectorAll('.topic-list li');
@@ -428,38 +946,475 @@
     setTopic('var');
 
     // ======================= ВОПРОСЫ (30) с наглядной цветовой индикацией (ИСПРАВЛЕНО) =======================
-    const questions = [
-        { text: "Как зовут учителя?", options: ["Сергец Бебрович", "Андрей Васильевич", "Серж Людвик IV", "Сергей Борисович"], correct: "Сергей Борисович" },
-        { text: "Какой компонент добавляет гравитацию и физику объекту?", options: ["Box Collider", "Rigidbody", "Transform", "Mesh Renderer"], correct: "Rigidbody" },
-        { text: "Какой метод создаёт копию префаба (пули)?", options: ["CreateCopy", "Duplicate", "Instantiate", "New"], correct: "Instantiate" },
-        { text: "Какой тип данных хранит целые числа (патроны)?", options: ["float", "string", "int", "bool"], correct: "int" },
-        { text: "Как переместить объект без учёта физики (простейший способ)?", options: ["AddForce", "Translate", "velocity", "MovePosition"], correct: "Translate" },
-        { text: "Какой метод полностью удаляет объект из памяти?", options: ["Remove", "Destroy", "Deactivate", "Eliminate"], correct: "Destroy" },
-        { text: "Как вывести сообщение в консоль?", options: ["Debug.Log", "print", "Console.WriteLine", "Оба варианта: print и Debug.Log"], correct: "Оба варианта: print и Debug.Log" },
-        { text: "Что делает SetActive(false) с объектом?", options: ["Удаляет навсегда", "Делает неактивным (скрывает и отключает логику)", "Останавливает физику, но оставляет видимым", "Перемещает в центр"], correct: "Делает неактивным (скрывает и отключает логику)" },
-        { text: "Как получить компонент скрипта 'Gun' на том же объекте?", options: ["GetComponent<Gun>()", "Find.Gun()", "GetScript Gun", "Gun.Find()"], correct: "GetComponent<Gun>()" },
-        { text: "Что такое Vector3.forward?", options: ["Вектор (0,0,1) — направление вперёд", "Вектор вверх (0,1,0)", "Случайный вектор", "Позиция камеры"], correct: "Вектор (0,0,1) — направление вперёд" },
-        { text: "Какой метод вызывается при физическом столкновении (без триггера)?", options: ["OnTriggerEnter", "OnCollisionEnter", "OnHit", "OnContact"], correct: "OnCollisionEnter" },
-        { text: "Зачем нужен модификатор public перед переменной?", options: ["Чтобы скрыть переменную", "Чтобы видеть её в инспекторе и обращаться из других скриптов", "Сделать константу"], correct: "Чтобы видеть её в инспекторе и обращаться из других скриптов" },
-        { text: "Как задать скорость пуле через физику?", options: ["transform.Translate", "Rigidbody.velocity", "AddForce каждый кадр", "SetActive"], correct: "Rigidbody.velocity" },
-        { text: "Где лучше инициализировать ссылки GetComponent?", options: ["В Update", "В Start или Awake", "В каждом кадре", "В OnMouseDown"], correct: "В Start или Awake" },
-        { text: "Что произойдёт с Destroy(gameObject, 2f)?", options: ["Уничтожит через 2 секунды", "Уничтожит мгновенно", "Спрячет на 2 секунды", "Выключит через 2 секунды"], correct: "Уничтожит через 2 секунды" },
-        { text: "Зачем нужен IsTrigger на коллайдере?", options: ["Для вызова OnTriggerEnter без физического отталкивания", "Для лучшей графики", "Для автоматического Destroy", "Для звуковых эффектов"], correct: "Для вызова OnTriggerEnter без физического отталкивания" },
-        { text: "Какой метод отвечает за обработку нажатий мыши/клавиатуры в каждом кадре?", options: ["Start", "Update", "FixedUpdate", "LateUpdate"], correct: "Update" },
-        { text: "Что вернёт Instantiate(bulletPrefab)?", options: ["void", "GameObject", "Transform", "Component"], correct: "GameObject" },
-        { text: "Как правильно сравнить тег объекта в OnTriggerEnter?", options: ["other.CompareTag('Enemy')", "other.tag = 'Enemy'", "GetTag(other)"], correct: "other.CompareTag('Enemy')" },
-        { text: "Сколько раз вызывается Start() у объекта?", options: ["Каждый кадр", "Один раз при активации", "Только при удалении", "10 раз в секунду"], correct: "Один раз при активации" },
-        { text: "Как остановить скрипт (чтобы не выполнялся Update) без удаления?", options: ["Destroy(this)", "enabled = false", "gameObject.active = false", "SetActive(false)"], correct: "enabled = false" },
-        { text: "Что такое префаб в Unity?", options: ["Шаблон объекта, сохранённый в проекте", "Скрипт на C#", "Компонент физики"], correct: "Шаблон объекта, сохранённый в проекте" },
-        { text: "Какой метод вызывается при входе в триггер?", options: ["OnCollisionEnter", "OnTriggerEnter", "OnTriggerStay", "OnMouseEnter"], correct: "OnTriggerEnter" },
-        { text: "Какая структура описывает 3D координаты?", options: ["Vector2", "Vector3", "Float3"], correct: "Vector3" },
-        { text: "Можно ли удалить объект в методе OnTriggerEnter?", options: ["Да", "Нет, только OnCollision", "Только в Update"], correct: "Да" },
-        { text: "Что делает Time.deltaTime?", options: ["Время между кадрами для плавности движения", "Общее время игры", "Задержка выстрела"], correct: "Время между кадрами для плавности движения" },
-        { text: "Как получить компонент Rigidbody у созданной пули?", options: ["bullet.GetComponent<Rigidbody>()", "bullet.Rigidbody", "Get<Rigidbody>(bullet)"], correct: "bullet.GetComponent<Rigidbody>()" },
-        { text: "Какой метод автоматически вызывается при уничтожении объекта?", options: ["OnDestroy", "OnDelete", "OnDisable"], correct: "OnDestroy" },
-        { text: "Что означает NullReferenceException?", options: ["Попытка использовать несуществующий объект/компонент", "Нехватка памяти", "Ошибка компиляции"], correct: "Попытка использовать несуществующий объект/компонент" },
-        { text: "Для стрельбы из оружия нужно вызывать Instantiate...", options: ["В методе Shoot", "Только в Start", "В FixedUpdate"], correct: "В методе Shoot" }
-    ];
+const questions = [
+    {
+        text: "Какой компонент отвечает за физику объекта: массу, гравитацию и скорость?",
+        options: ["Transform", "Rigidbody", "Mesh Renderer", "Box Collider"],
+        correct: "Rigidbody"
+    },
+    {
+        text: "Что произойдёт, если у куба есть Rigidbody, но нет Collider?",
+        options: [
+            "Куб будет падать и корректно сталкиваться с полом",
+            "Куб будет видимым только в Scene, но не в Game",
+            "Куб сможет двигаться под физикой, но столкновения могут работать неправильно",
+            "Куб автоматически станет триггером"
+        ],
+        correct: "Куб сможет двигаться под физикой, но столкновения могут работать неправильно"
+    },
+    {
+        text: "Какой компонент нужен объекту, чтобы Unity понимала его форму для столкновений?",
+        options: ["Collider", "Animator", "Audio Source", "Camera"],
+        correct: "Collider"
+    },
+    {
+        text: "Что делает параметр Is Trigger у Collider?",
+        options: [
+            "Удаляет объект при столкновении",
+            "Включает физическое отталкивание",
+            "Делает объект невидимым",
+            "Позволяет вызывать события триггера без обычного физического столкновения"
+        ],
+        correct: "Позволяет вызывать события триггера без обычного физического столкновения"
+    },
+    {
+        text: "Какой метод вызывается, когда объект входит в триггерную область?",
+        options: ["OnCollisionEnter", "OnTriggerEnter", "OnObjectEnter", "OnPhysicsStart"],
+        correct: "OnTriggerEnter"
+    },
+    {
+        text: "Какой метод вызывается при обычном физическом столкновении двух объектов?",
+        options: ["OnTriggerExit", "OnCollisionEnter", "OnHitEnter", "OnTouchObject"],
+        correct: "OnCollisionEnter"
+    },
+    {
+        text: "Что лучше использовать для движения физического игрока с Rigidbody?",
+        options: [
+            "Постоянно менять transform.position без Rigidbody",
+            "Управлять движением через Rigidbody",
+            "Отключить Collider и двигать объект через Translate",
+            "Использовать только SetActive"
+        ],
+        correct: "Управлять движением через Rigidbody"
+    },
+    {
+        text: "Что такое GameObject в Unity?",
+        options: [
+            "Только 3D-модель персонажа",
+            "Файл с кодом C#",
+            "Любой объект на сцене: игрок, камера, пуля, свет, враг",
+            "Только объект с Rigidbody"
+        ],
+        correct: "Любой объект на сцене: игрок, камера, пуля, свет, враг"
+    },
+    {
+        text: "Какой компонент есть у каждого GameObject обязательно?",
+        options: ["Transform", "Rigidbody", "Box Collider", "Audio Listener"],
+        correct: "Transform"
+    },
+    {
+        text: "За что отвечает Transform?",
+        options: [
+            "За позицию, поворот и масштаб объекта",
+            "За звук объекта",
+            "За физическую массу объекта",
+            "За материал и цвет объекта"
+        ],
+        correct: "За позицию, поворот и масштаб объекта"
+    },
+    {
+        text: "Какая структура используется для хранения 3D-координат?",
+        options: ["Vector2", "Vector3", "Quaternion", "Transform"],
+        correct: "Vector3"
+    },
+    {
+        text: "Что означает Vector3.forward?",
+        options: [
+            "Направление вверх",
+            "Случайное направление",
+            "Направление вперёд по оси Z",
+            "Позиция объекта в мире"
+        ],
+        correct: "Направление вперёд по оси Z"
+    },
+    {
+        text: "Что означает Vector3.up?",
+        options: [
+            "Направление вверх по оси Y",
+            "Направление вправо по оси X",
+            "Поворот объекта",
+            "Размер объекта"
+        ],
+        correct: "Направление вверх по оси Y"
+    },
+    {
+        text: "Какой тип данных лучше использовать для количества патронов?",
+        options: ["string", "bool", "float", "int"],
+        correct: "int"
+    },
+    {
+        text: "Какой тип данных лучше использовать для скорости пули 20.5?",
+        options: ["float", "int", "bool", "char"],
+        correct: "float"
+    },
+    {
+        text: "Какой тип данных подходит для хранения имени оружия?",
+        options: ["bool", "string", "int", "Rigidbody"],
+        correct: "string"
+    },
+    {
+        text: "Какой тип данных подходит для состояния 'идёт ли перезарядка'?",
+        options: ["float", "Vector3", "bool", "GameObject"],
+        correct: "bool"
+    },
+    {
+        text: "Что делает модификатор public у переменной в Unity?",
+        options: [
+            "Полностью запрещает доступ к переменной",
+            "Делает переменную видимой в инспекторе и доступной из других скриптов",
+            "Автоматически удаляет переменную после запуска",
+            "Превращает переменную в метод"
+        ],
+        correct: "Делает переменную видимой в инспекторе и доступной из других скриптов"
+    },
+    {
+        text: "Что делает private-переменная?",
+        options: [
+            "Скрывает переменную от других скриптов и инспектора по умолчанию",
+            "Делает переменную глобальной для всей игры",
+            "Создаёт новый GameObject",
+            "Автоматически сохраняет данные между сценами"
+        ],
+        correct: "Скрывает переменную от других скриптов и инспектора по умолчанию"
+    },
+    {
+        text: "Какой вариант имени переменной лучше для скорости пули?",
+        options: ["a", "bulletSpeed", "x", "temp"],
+        correct: "bulletSpeed"
+    },
+    {
+        text: "Какой метод создаёт копию префаба на сцене?",
+        options: ["Destroy", "SetActive", "Instantiate", "GetComponent"],
+        correct: "Instantiate"
+    },
+    {
+        text: "Что такое префаб?",
+        options: [
+            "Сохранённый шаблон объекта, который можно создавать на сцене",
+            "Только картинка для интерфейса",
+            "Ошибка компиляции",
+            "Тип переменной для дробных чисел"
+        ],
+        correct: "Сохранённый шаблон объекта, который можно создавать на сцене"
+    },
+    {
+        text: "Что обычно создаётся через Instantiate при выстреле?",
+        options: ["Камера", "Пуля", "Сцена", "Скрипт"],
+        correct: "Пуля"
+    },
+    {
+        text: "Что делает Destroy(gameObject)?",
+        options: [
+            "Отключает объект на 1 кадр",
+            "Перемещает объект в центр сцены",
+            "Удаляет объект",
+            "Создаёт копию объекта"
+        ],
+        correct: "Удаляет объект"
+    },
+    {
+        text: "Что делает Destroy(bullet, 4f)?",
+        options: [
+            "Удаляет bullet через 4 секунды",
+            "Увеличивает скорость bullet в 4 раза",
+            "Создаёт 4 копии bullet",
+            "Отключает Collider на 4 секунды"
+        ],
+        correct: "Удаляет bullet через 4 секунды"
+    },
+    {
+        text: "Что делает SetActive(false)?",
+        options: [
+            "Уничтожает объект навсегда",
+            "Делает объект неактивным",
+            "Меняет Rigidbody на Trigger",
+            "Создаёт новый объект"
+        ],
+        correct: "Делает объект неактивным"
+    },
+    {
+        text: "Для чего удобно использовать SetActive при создании оружия?",
+        options: [
+            "Чтобы переключать активное оружие",
+            "Чтобы увеличивать урон пули",
+            "Чтобы удалять все патроны",
+            "Чтобы менять цвет материала"
+        ],
+        correct: "Чтобы переключать активное оружие"
+    },
+    {
+        text: "Как получить Rigidbody у созданной пули bulletObj?",
+        options: [
+            "bulletObj.Find<Rigidbody>()",
+            "bulletObj.GetComponent<Rigidbody>()",
+            "Rigidbody.Get(bulletObj)",
+            "bulletObj.Rigidbody()"
+        ],
+        correct: "bulletObj.GetComponent<Rigidbody>()"
+    },
+    {
+        text: "Где лучше один раз получать ссылки через GetComponent?",
+        options: ["В Start или Awake", "В каждом кадре Update", "Только в OnDestroy", "Только после Destroy"],
+        correct: "В Start или Awake"
+    },
+    {
+        text: "Почему не стоит без необходимости вызывать GetComponent каждый кадр?",
+        options: [
+            "Потому что объект сразу удалится",
+            "Потому что это лишняя операция и может ухудшать производительность",
+            "Потому что GetComponent работает только с камерой",
+            "Потому что он меняет позицию объекта"
+        ],
+        correct: "Потому что это лишняя операция и может ухудшать производительность"
+    },
+    {
+        text: "Что означает ошибка NullReferenceException?",
+        options: [
+            "Скрипт не был сохранён",
+            "На сцене слишком много объектов",
+            "Код пытается обратиться к объекту или компоненту, которого нет",
+            "Unity не поддерживает переменные int"
+        ],
+        correct: "Код пытается обратиться к объекту или компоненту, которого нет"
+    },
+    {
+        text: "Зачем проверять enemy != null перед вызовом enemy.TakeDamage()?",
+        options: [
+            "Чтобы не получить ошибку, если компонента Enemy нет",
+            "Чтобы увеличить скорость пули",
+            "Чтобы включить гравитацию",
+            "Чтобы создать нового врага"
+        ],
+        correct: "Чтобы не получить ошибку, если компонента Enemy нет"
+    },
+    {
+        text: "Как правильно сравнить тег объекта?",
+        options: [
+            "other.tag = Enemy",
+            "other.CompareTag(\"Enemy\")",
+            "Compare(other, Enemy)",
+            "other.GetTag(\"Enemy\")"
+        ],
+        correct: "other.CompareTag(\"Enemy\")"
+    },
+    {
+        text: "Почему вариант other.tag = \"Enemy\" неправильный для проверки?",
+        options: [
+            "Он пытается присвоить тег, а не проверить его",
+            "Он создаёт новый тег",
+            "Он удаляет тег у объекта",
+            "Он работает только в Start"
+        ],
+        correct: "Он пытается присвоить тег, а не проверить его"
+    },
+    {
+        text: "Что обычно делает метод Shoot() в скрипте оружия?",
+        options: [
+            "Создаёт пулю, задаёт ей направление и уменьшает патроны",
+            "Только удаляет игрока",
+            "Только меняет цвет камеры",
+            "Создаёт новую сцену"
+        ],
+        correct: "Создаёт пулю, задаёт ей направление и уменьшает патроны"
+    },
+    {
+        text: "Как лучше задать прямой полёт пуле через Rigidbody?",
+        options: [
+            "rb.velocity = firePoint.forward * bulletSpeed",
+            "rb.color = bulletSpeed",
+            "rb.SetActive(true)",
+            "rb.Destroy(4f)"
+        ],
+        correct: "rb.velocity = firePoint.forward * bulletSpeed"
+    },
+    {
+        text: "Почему для пули часто отключают Use Gravity?",
+        options: [
+            "Чтобы пуля летела прямо, а не падала вниз",
+            "Чтобы пуля стала невидимой",
+            "Чтобы пуля не могла сталкиваться",
+            "Чтобы пуля не создавалась через Instantiate"
+        ],
+        correct: "Чтобы пуля летела прямо, а не падала вниз"
+    },
+    {
+        text: "Что должно происходить, если currentAmmo равен 0?",
+        options: [
+            "Оружие должно стрелять быстрее",
+            "Оружие не должно стрелять",
+            "Пуля должна становиться больше",
+            "Игрок должен телепортироваться"
+        ],
+        correct: "Оружие не должно стрелять"
+    },
+    {
+        text: "Когда при выстреле нужно уменьшать количество патронов?",
+        options: [
+            "После успешного создания выстрела",
+            "Только при запуске игры",
+            "Каждый кадр, даже без стрельбы",
+            "Только при столкновении с полом"
+        ],
+        correct: "После успешного создания выстрела"
+    },
+    {
+        text: "Какой метод Unity чаще всего используется для проверки нажатия кнопки мыши каждый кадр?",
+        options: ["Start", "Update", "Awake", "OnDestroy"],
+        correct: "Update"
+    },
+    {
+        text: "Сколько раз обычно вызывается Start у активного объекта?",
+        options: [
+            "Каждый кадр",
+            "Один раз перед первым Update",
+            "Каждый раз при столкновении",
+            "Только после Destroy"
+        ],
+        correct: "Один раз перед первым Update"
+    },
+    {
+        text: "Когда вызывается Awake?",
+        options: [
+            "После каждого клика мыши",
+            "Когда объект создаётся или загружается",
+            "Только при попадании пули",
+            "Только при выходе из триггера"
+        ],
+        correct: "Когда объект создаётся или загружается"
+    },
+    {
+        text: "Для чего лучше использовать FixedUpdate?",
+        options: [
+            "Для физики и работы с Rigidbody",
+            "Для хранения текста",
+            "Для смены имени сцены",
+            "Для вывода UI-картинок"
+        ],
+        correct: "Для физики и работы с Rigidbody"
+    },
+    {
+        text: "Что делает Time.deltaTime?",
+        options: [
+            "Показывает количество объектов на сцене",
+            "Хранит общее количество патронов",
+            "Даёт время между кадрами для плавного движения",
+            "Отключает физику"
+        ],
+        correct: "Даёт время между кадрами для плавного движения"
+    },
+    {
+        text: "Для чего в оружии нужен firePoint?",
+        options: [
+            "Для хранения здоровья врага",
+            "Для указания позиции и направления вылета пули",
+            "Для удаления всех объектов на сцене",
+            "Для включения звука в Unity"
+        ],
+        correct: "Для указания позиции и направления вылета пули"
+    },
+    {
+        text: "Что произойдёт, если пуля создаётся в позиции firePoint.position?",
+        options: [
+            "Пуля появится в точке вылета оружия",
+            "Пуля появится в центре сцены",
+            "Пуля не сможет двигаться",
+            "Пуля автоматически уничтожит игрока"
+        ],
+        correct: "Пуля появится в точке вылета оружия"
+    },
+    {
+        text: "Что должен делать Enemy.TakeDamage(1)?",
+        options: [
+            "Уменьшать здоровье врага на 1",
+            "Создавать новую пулю",
+            "Выключать игрока",
+            "Включать Is Trigger"
+        ],
+        correct: "Уменьшать здоровье врага на 1"
+    },
+    {
+        text: "Когда врага логично уничтожать через Destroy?",
+        options: [
+            "Когда его health стал 0 или меньше",
+            "Когда игрок просто нажал W",
+            "Когда сцена загрузилась",
+            "Когда пуля ещё не создана"
+        ],
+        correct: "Когда его health стал 0 или меньше"
+    },
+    {
+        text: "Какой способ подойдёт для случайной позиции мишени?",
+        options: [
+            "Random.Range",
+            "Destroy.Range",
+            "SetActive.Random",
+            "GetComponent.Range"
+        ],
+        correct: "Random.Range"
+    },
+    {
+        text: "Что делает Physics.OverlapSphere?",
+        options: [
+            "Находит коллайдеры в радиусе вокруг точки",
+            "Создаёт сферу в инспекторе",
+            "Удаляет все Rigidbody",
+            "Меняет тег объекта"
+        ],
+        correct: "Находит коллайдеры в радиусе вокруг точки"
+    },
+    {
+        text: "Для чего можно использовать AddForce при взрыве гранаты?",
+        options: [
+            "Чтобы оттолкнуть ближайшие физические объекты",
+            "Чтобы сделать объект невидимым",
+            "Чтобы создать новый скрипт",
+            "Чтобы изменить название сцены"
+        ],
+        correct: "Чтобы оттолкнуть ближайшие физические объекты"
+    },
+    {
+        text: "Что лучше всего описывает очередь из трёх выстрелов?",
+        options: [
+            "Одно нажатие создаёт три пули с небольшой задержкой между ними",
+            "Три клика мыши создают одну пулю",
+            "Пуля делится на три объекта после столкновения с полом",
+            "Оружие удаляется после третьего кадра"
+        ],
+        correct: "Одно нажатие создаёт три пули с небольшой задержкой между ними"
+    },
+    {
+        text: "Что важно учитывать при стрельбе очередью, если патронов меньше трёх?",
+        options: [
+            "Оружие должно стрелять только тем количеством пуль, на которое хватает патронов",
+            "Оружие должно уйти в отрицательные патроны",
+            "Оружие должно удалить Rigidbody у игрока",
+            "Оружие должно выключить камеру"
+        ],
+        correct: "Оружие должно стрелять только тем количеством пуль, на которое хватает патронов"
+    },
+    {
+        text: "Как можно переключать пистолет и автомат в задании с двумя оружиями?",
+        options: [
+            "Через SetActive у объектов оружия",
+            "Через Destroy у игрока",
+            "Через удаление всех пуль",
+            "Через выключение Transform"
+        ],
+        correct: "Через SetActive у объектов оружия"
+    }
+];
+
+
 
     let quizAttempts = JSON.parse(localStorage.getItem("unityQuizAttempts")) || new Array(30).fill(0);
     let quizLocked = JSON.parse(localStorage.getItem("unityQuizLocked")) || new Array(30).fill(false);
@@ -607,58 +1562,79 @@
     });
 
     // =============== ЗАДАНИЯ (развёрнутые, с примерами из игр) ===============
-    const tasks = [
-          { 
-        title: "1. Гравитация и столкновение", 
-        desc: "Создай куб и плоскость. Куб должен падать под физикой, при касании пола выводить 'Бум' в консоль. Куб не должен проваливаться под плоскость (используй Box Collider и Rigidbody).",
-        gameExample: "🎮 Пример из игры Half-Life 2: физические объекты (ящики, бочки) падают на пол, сталкиваются и издают звук."
-    },
+const tasks = [
     { 
-        title: "2. Спавн объектов через триггер", 
-        desc: "Создай область-триггер (3D-куб с IsTrigger). Когда игрок (куб с Rigidbody) заходит в триггер, появляется сфера с физикой на высоте 5 метров. Сферы удаляются через 3 секунды.",
-        gameExample: "🎮 Пример из игры Minecraft: когда игрок заходит в определённую зону, спавнятся мобы или предметы (например, появление криперов в тёмных пещерах)."
+        title: "1. Физический куб и пол", 
+        desc: "Создай сцену с плоскостью и кубом. Добавь кубу Rigidbody и Box Collider, а плоскости — Collider. Куб должен падать под действием гравитации, останавливаться на полу и не проваливаться сквозь него. При первом касании пола выведи в консоль сообщение: 'Куб упал на пол'.",
+        gameExample: "🎮 Пример из игры Half-Life 2: ящики, бочки и другие предметы падают, сталкиваются с полом и ведут себя как физические объекты."
     },
+
     { 
-        title: "3. Простое оружие (пистолет)", 
-        desc: "Создай префаб пули и оружие (камера + точка вылета). При клике мыши пуля вылетает вперёд (Rigidbody.velocity). Пуля удаляется через 4 секунды.",
-        gameExample: "🎮 Пример из игры Counter-Strike: пуля вылетает из ствола пистолета, летит по прямой и через некоторое время исчезает, если не попала в цель."
+        title: "2. Игрок-куб и простое движение", 
+        desc: "Создай объект игрока в виде куба. Добавь ему Rigidbody и Collider. Сделай простое управление через клавиши WASD: игрок должен двигаться по сцене, но не проходить сквозь пол и стены. Для движения используй Rigidbody, чтобы физика работала корректно.",
+        gameExample: "🎮 Пример из игры Portal: игрок перемещается по уровню, сталкивается со стенами, полом и физическими объектами, не проходя сквозь них."
     },
+
     { 
-        title: "4. Столкновение пули со стеной", 
-        desc: "Добавь стены с коллайдерами. Пуля уничтожается при попадании в любую стену (OnCollisionEnter).",
-        gameExample: "🎮 Пример из игры Call of Duty: при попадании пули в стену она оставляет след (кратер или дым) и исчезает, не проходя сквозь препятствия."
+        title: "3. Зона-триггер и появление бонуса", 
+        desc: "Создай зону-триггер в виде прозрачного куба с включённым IsTrigger. Когда игрок заходит в эту зону, над платформой должна появляться сфера-бонус с Rigidbody. Бонус должен падать вниз под действием физики и удаляться через 5 секунд, если игрок его не подобрал.",
+        gameExample: "🎮 Пример из игры Minecraft: когда игрок попадает в определённую область, в мире могут появляться предметы, мобы или другие игровые объекты."
     },
+
     { 
-        title: "5. Ограниченные патроны", 
-        desc: "Скрипт AmmoManager хранит патроны (int). При выстреле патроны уменьшаются, при 0 стрельба невозможна.",
-        gameExample: "🎮 Пример из игры Resident Evil: у игрока ограниченный запас патронов, нужно экономить каждую пулю, иначе придётся убегать от врагов."
+        title: "4. Подбор бонуса через OnTriggerEnter", 
+        desc: "Сделай так, чтобы игрок мог подобрать сферу-бонус. Для этого добавь бонусу Collider с IsTrigger. Когда игрок касается бонуса, бонус должен исчезнуть, а в консоль должно выводиться сообщение: 'Бонус подобран'. Используй OnTriggerEnter и проверку тега игрока.",
+        gameExample: "🎮 Пример из игры Super Mario: персонаж подбирает монеты и бонусы, после чего они исчезают, а игрок получает очки или усиление."
     },
+
     { 
-        title: "6. Уничтожение врага", 
-        desc: "Враг — красный куб. При попадании пули враг уничтожается (Destroy) и появляется эффект (частицы или доп. куб).",
-        gameExample: "🎮 Пример из игры DOOM (2016): при убийстве демона он взрывается в кровавое месиво с частицами и звуком — отличная награда за попадание."
+        title: "5. Простое оружие и выстрел пулей", 
+        desc: "Создай оружие у игрока: добавь точку вылета пули firePoint и префаб пули. При нажатии левой кнопки мыши должна создаваться пуля через Instantiate. Пуля должна лететь вперёд с помощью Rigidbody.velocity и удаляться через 4 секунды.",
+        gameExample: "🎮 Пример из игры Counter-Strike: игрок нажимает кнопку мыши, оружие стреляет, а пуля летит вперёд в направлении прицела."
     },
+
     { 
-        title: "7. Движущаяся платформа + очередь стрельбы", 
-        desc: "Платформа движется Translate вперёд-назад. Оружие стреляет очередями: 3 пули с задержкой 0.1с.",
-        gameExample: "🎮 Пример из игры Enter the Gungeon: некоторые враги стреляют очередями из трёх пуль с небольшой задержкой между выстрелами, усложняя уклонение."
+        title: "6. Попадание пули в стену", 
+        desc: "Добавь на сцену несколько стен с коллайдерами. Сделай так, чтобы пуля уничтожалась при столкновении со стеной. При попадании выводи в консоль сообщение: 'Пуля попала в стену'. Используй OnCollisionEnter или OnTriggerEnter — в зависимости от того, как настроена пуля.",
+        gameExample: "🎮 Пример из игры Call of Duty: пули не пролетают бесконечно сквозь стены, а сталкиваются с препятствиями и исчезают после попадания."
     },
+
     { 
-        title: "8. Переключение оружия", 
-        desc: "Два объекта оружия (пистолет и автомат). Клавиши 1 и 2 активируют нужное через SetActive. Автомат стреляет быстрее.",
-        gameExample: "🎮 Пример из игры Far Cry: нажатием цифровых клавиш 1,2,3 игрок переключается между пистолетом, автоматом и дробовиком — каждый со своей скорострельностью."
+        title: "7. Ограниченные патроны", 
+        desc: "Добавь систему патронов. Создай переменную currentAmmo, например 10 патронов. При каждом выстреле количество патронов должно уменьшаться на 1. Если патронов 0, оружие не должно стрелять, а в консоль должно выводиться: 'Нет патронов'.",
+        gameExample: "🎮 Пример из игры Resident Evil: у игрока ограниченный запас патронов, поэтому каждый выстрел важен."
     },
+
     { 
-        title: "9. Мишень-триггер (тир)", 
-        desc: "Мишень с триггером, при попадании пули мишень уничтожается и счёт увеличивается (+1). Через 1 секунду мишень появляется в новом месте (Random).",
-        gameExample: "🎮 Пример из игры Call of Duty: режим 'Тир' — мишени появляются в случайных местах, а игрок соревнуется на точность и скорость."
+        title: "8. Враг и урон от пули", 
+        desc: "Создай врага в виде красного куба. Добавь ему скрипт Enemy с переменной health. При попадании пули здоровье врага должно уменьшаться. Например, у врага 3 здоровья, а каждая пуля наносит 1 урон. Когда здоровье становится 0, враг уничтожается через Destroy.",
+        gameExample: "🎮 Пример из игры DOOM: враг получает урон от попаданий, а после потери всего здоровья уничтожается."
     },
+
     { 
-        title: "10. Гранатомёт с взрывом", 
-        desc: "Пуля-граната через 1 секунду создаёт взрыв: OverlapSphere и AddForce ближайшим объектам.",
-        gameExample: "🎮 Пример из игры Team Fortress 2: гранаты разлетаются и отбрасывают врагов взрывной волной, нанося урон и дезориентируя противника."
+        title: "9. Очередь из трёх выстрелов", 
+        desc: "Усложни оружие: добавь режим стрельбы очередью. При одном нажатии мыши оружие должно выпускать 3 пули подряд с небольшой задержкой, например 0.15 секунды между пулями. При этом каждая пуля должна тратить один патрон. Если патронов меньше трёх, оружие стреляет только тем количеством пуль, которое осталось.",
+        gameExample: "🎮 Пример из игры Enter the Gungeon: некоторые виды оружия и враги стреляют короткими очередями, из-за чего стрельба становится более динамичной."
+    },
+
+    { 
+        title: "10. Переключение оружия и разные характеристики", 
+        desc: "Создай два оружия: пистолет и автомат. Клавиша 1 включает пистолет, клавиша 2 включает автомат. Используй SetActive для переключения объектов оружия. Пистолет должен стрелять одиночными выстрелами, а автомат — быстрее или очередями. У каждого оружия должны быть свои патроны, скорость стрельбы и скорость пули.",
+        gameExample: "🎮 Пример из игры Far Cry: игрок может переключаться между разными видами оружия, и каждое оружие ощущается по-разному."
+    },
+
+    { 
+        title: "11. Мишени и счёт игрока", 
+        desc: "Создай мишень, которая появляется в случайной точке на арене. Когда пуля попадает в мишень, мишень уничтожается, счёт игрока увеличивается на 1, а через 1 секунду появляется новая мишень в другом месте. Используй Random.Range для выбора позиции.",
+        gameExample: "🎮 Пример из тренировочных режимов в шутерах: игрок стреляет по появляющимся мишеням, чтобы тренировать скорость реакции и точность."
+    },
+
+    { 
+        title: "12. Гранатомёт и взрывная волна", 
+        desc: "Добавь новое оружие — гранатомёт. Граната должна вылетать вперёд, а через 1 секунду создавать взрыв. В момент взрыва найди ближайшие физические объекты через OverlapSphere и оттолкни их с помощью AddForce. После взрыва граната должна уничтожаться.",
+        gameExample: "🎮 Пример из игры Team Fortress 2: взрыв от гранаты отбрасывает объекты и врагов, создавая ощущение мощной ударной волны."
     }
-    ];
+];
 
  function renderTasks() {
     const container = document.getElementById('tasks-container');
